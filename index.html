@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Feeder Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div id="game-container">
+            
+            <div id="menu-screen" class="screen active">
+                <h1 class="game-title">THÚ CƯNG HÁU ĂN</h1>
+                <div class="menu-buttons">
+                    <button class="btn primary" onclick="Game.startGame()">BẮT ĐẦU</button>
+                    <button class="btn secondary" onclick="UI.showScreen('settings-screen')">CÀI ĐẶT</button>
+                    <button class="btn secondary" onclick="UI.showScreen('guide-screen')">HƯỚNG DẪN</button>
+                </div>
+            </div>
+
+            <div id="settings-screen" class="screen">
+                <h2>CÀI ĐẶT</h2>
+                <div class="setting-row">
+                    <label>Chế độ Khó (1 Mạng):</label>
+                    <label class="switch">
+                        <input type="checkbox" id="hard-mode-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label>Âm thanh:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="sound-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button class="btn back-btn" onclick="UI.showScreen('menu-screen')">QUAY LẠI</button>
+            </div>
+
+            <div id="guide-screen" class="screen">
+                <h2>HƯỚNG DẪN</h2>
+                <div class="guide-content">
+                    <p>+ Bạn cần làm 30 thú cưng được ăn no mà không làm các bé khó chịu thì sẽ được nhận voucher 1-10% tổng giá trị voucher. (Lưu ý chỉ ở mức khó mới được)</p>
+                    <p>+ Bạn sẽ không được gì nếu bạn thua trò chơi.</p>
+                    <p>+ Chúc bạn chơi vui vẻ và cố gắng</p>
+                </div>
+                <button class="btn back-btn" onclick="UI.showScreen('menu-screen')">ĐÃ HIỂU</button>
+            </div>
+
+            <div id="gameplay-screen" class="screen">
+                <div class="section top-section">
+                    <div class="hud-box">
+                        <span id="score-display">Điểm: 0</span>
+                        <div id="timer-bar-container"><div id="timer-bar"></div></div>
+                        <span id="lives-display">❤️❤️❤️</span>
+                    </div>
+                    <button class="btn-pause" onclick="Game.endGame(false)">Thoát</button>
+                </div>
+
+                <div class="section middle-section">
+                    <div class="pet-container" onclick="Game.handlePetClick()">
+                        <div class="thought-bubble" id="thought-bubble">
+                            </div>
+                        <div class="pet-emoji" id="pet-emoji">🐱</div>
+                        <div class="pet-status" id="pet-status"></div>
+                    </div>
+                </div>
+
+                <div class="section bottom-section">
+                    <div class="food-grid">
+                        <button class="food-item" onclick="Game.selectFood('meat')">
+                            <span class="icon">🍖</span>
+                            <span class="label">Thịt</span>
+                        </button>
+                        <button class="food-item" onclick="Game.selectFood('fish')">
+                            <span class="icon">🐟</span>
+                            <span class="label">Cá</span>
+                        </button>
+                        <button class="food-item" onclick="Game.selectFood('milk')">
+                            <span class="icon">🥛</span>
+                            <span class="label">Sữa</span>
+                        </button>
+                        <button class="food-item" onclick="Game.selectFood('veg')">
+                            <span class="icon">🥕</span>
+                            <span class="label">Rau</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result-screen" class="screen">
+                <h2 id="result-title">KẾT THÚC</h2>
+                <p id="result-message">Bạn đã thua!</p>
+                <div id="voucher-container" class="hidden">
+                    <div class="ticket">
+                        <p>VOUCHER GIẢM GIÁ</p>
+                        <h1 id="voucher-code">CODE123</h1>
+                        <p id="voucher-value">Giảm 10%</p>
+                    </div>
+                </div>
+                <div class="menu-buttons">
+                    <button class="btn primary" onclick="Game.startGame()">CHƠI LẠI</button>
+                    <button class="btn secondary" onclick="UI.showScreen('menu-screen')">VỀ MENU</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
