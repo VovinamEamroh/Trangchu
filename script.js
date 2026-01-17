@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// --- 2. CẤU HÌNH KẾT NỐI ---
+// --- 2. CẤU HÌNH KẾT NỐI (Lấy từ ảnh bạn gửi) ---
 const firebaseConfig = {
     apiKey: "AIzaSyDn0yqXve0rYSEKFommFKV8J-McHEU-Nh4",
     authDomain: "vovinam-web-4eb57.firebaseapp.com",
@@ -32,6 +32,7 @@ onSnapshot(collection(db, COLL_STUDENTS), (snapshot) => {
         data.firebaseId = doc.id; 
         students.push(data);
     });
+    // Tự động vẽ lại bảng nếu đang mở
     if(document.getElementById('club-manager') && document.getElementById('club-manager').style.display === 'block') {
         renderAttendanceTable();
     }
@@ -169,14 +170,12 @@ window.switchTab = function(tabId) {
     
     document.getElementById(`tab-${tabId}`).style.display = 'block';
     
-    // XỬ LÝ HIỂN THỊ NÚT LƯU
+    // --- QUYỀN ADMIN: Hiển thị nút Lưu ---
     const actionDiv = document.getElementById('attendance-actions');
-    
     if(tabId === 'attendance') {
         document.querySelector('.tab-btn').classList.add('active');
         renderAttendanceTable();
-        
-        // CHỈ HIỆN NÚT LƯU NẾU LÀ ADMIN
+        // Chỉ Admin (SĐT 000) mới thấy nút Lưu
         if(actionDiv) actionDiv.style.display = isAdmin() ? 'block' : 'none';
     } else {
         const btnAdd = document.getElementById('btn-add-student');
@@ -197,23 +196,19 @@ function renderAttendanceTable() {
     clubStudents.forEach((student, index) => {
         const tr = document.createElement('tr');
         
-        // CỘT 1: TRẠNG THÁI
-        // Admin: Hiện nút gạt (Checkbox) để chỉnh
-        // Môn sinh: Chỉ hiện chữ (Text) để xem
+        // 1. TRẠNG THÁI: Admin hiện checkbox, Môn sinh hiện chữ
         let statusHTML = isAdmin() 
             ? `<label class="switch"><input type="checkbox" id="status-${student.firebaseId}" ${student.isPresent ? 'checked' : ''}><span class="slider"></span></label>`
             : (student.isPresent ? `<span style="color:green;font-weight:bold;">Có mặt</span>` : `<span style="color:red;font-weight:bold;">Vắng</span>`);
         
-        // CỘT 2: GHI CHÚ
-        // Admin: Hiện ô nhập (Input) để viết
-        // Môn sinh: Chỉ hiện chữ (Text) để đọc
+        // 2. GHI CHÚ: Admin hiện ô nhập, Môn sinh chỉ hiện chữ
         let noteHTML = isAdmin()
             ? `<input type="text" class="note-input" id="note-${student.firebaseId}" value="${student.note || ''}" placeholder="Lý do...">`
             : `<span>${student.note || ''}</span>`;
 
-        // Nút xóa (Chỉ Admin)
+        // 3. XÓA: Chỉ Admin có nút xóa
         let deleteBtn = isAdmin() 
-            ? ` <i class="fas fa-trash" style="color: #ff4444; cursor: pointer; margin-left: 10px;" onclick="deleteStudent('${student.firebaseId}', '${student.name}')"></i>` 
+            ? ` <i class="fas fa-trash" style="color: #ff4444; cursor: pointer; margin-left: 10px;" onclick="deleteStudent('${student.firebaseId}', '${student.name}')" title="Xóa môn sinh"></i>` 
             : '';
 
         const isMe = !isAdmin() && currentUser.phone === student.phone;
@@ -234,20 +229,19 @@ function renderAttendanceTable() {
     });
 }
 
-// HÀM LƯU ĐIỂM DANH (BATCH WRITE - CHỈ ADMIN DÙNG ĐƯỢC)
+// LƯU ĐIỂM DANH (Chỉ Admin)
 window.saveDailyAttendance = async function() {
-    if(!isAdmin()) { alert("Bạn không có quyền này!"); return; }
+    if(!isAdmin()) { alert("Bạn không có quyền thực hiện!"); return; }
     if(!confirm("Lưu điểm danh hôm nay?")) return;
 
     const clubStudents = students.filter(s => s.club === currentClub);
     const todayStr = new Date().toLocaleDateString('vi-VN');
     
-    // Gom dữ liệu gửi 1 lần (Batch)
+    // Gom dữ liệu gửi 1 lần (Batch Write)
     const batch = writeBatch(db);
     let changeCount = 0;
 
     clubStudents.forEach(student => {
-        // Lấy giá trị từ các ô input mà Admin đã chỉnh
         const statusEl = document.getElementById(`status-${student.firebaseId}`);
         const noteEl = document.getElementById(`note-${student.firebaseId}`);
 
@@ -264,14 +258,14 @@ window.saveDailyAttendance = async function() {
 
     try {
         await batch.commit(); // Gửi lên mây
-        alert(`Đã lưu xong cho ${changeCount} môn sinh!`);
+        alert(`Đã lưu thành công cho ${changeCount} môn sinh!`);
     } catch (e) {
         console.error(e);
         alert("Lỗi khi lưu: " + e.message);
     }
 }
 
-// Xóa môn sinh
+// Xóa môn sinh (Chỉ Admin)
 window.deleteStudent = async function(firebaseId, studentName) {
     if(!isAdmin()) return;
     if(confirm(`Xóa vĩnh viễn ${studentName}?`)) {
