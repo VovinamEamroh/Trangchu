@@ -1,8 +1,8 @@
-// --- 1. NHÚNG THƯ VIỆN FIREBASE (ONLINE) ---
+// --- 1. NHÚNG THƯ VIỆN FIREBASE (Dạng link Web - CDN) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// --- 2. CẤU HÌNH KẾT NỐI (Đã điền thông tin từ ảnh của bạn) ---
+// --- 2. CẤU HÌNH KẾT NỐI (Đã điền đúng thông tin từ ảnh của bạn) ---
 const firebaseConfig = {
     apiKey: "AIzaSyDn0yqXve0rYSEKFommFKV8J-McHEU-Nh4",
     authDomain: "vovinam-web-4eb57.firebaseapp.com",
