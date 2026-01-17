@@ -150,21 +150,32 @@
                 </form>
             </div>
             <div id="tab-attendance" class="tab-content">
-                <div class="table-responsive">
-                    <table id="attendance-table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Ảnh</th>
-                                <th>Họ và Tên</th>
-                                <th>Trạng Thái</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendance-list"></tbody>
-                    </table>
-                </div>
-                <div id="empty-list-msg" style="text-align: center; margin-top: 20px; color: #666;">Chưa có môn sinh nào.</div>
-            </div>
+    
+    <div class="table-responsive">
+        <table id="attendance-table">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Ảnh</th>
+                    <th>Họ và Tên</th>
+                    <th>Trạng Thái</th>
+                    <th>Ghi chú</th> </tr>
+            </thead>
+            <tbody id="attendance-list"></tbody>
+        </table>
+    </div>
+
+    <div id="empty-list-msg" style="text-align: center; margin-top: 20px; color: #666; display: none;">
+        Chưa có môn sinh nào.
+    </div>
+
+    <div id="attendance-actions" style="text-align: center; margin-top: 20px; display: none;">
+        <button onclick="saveDailyAttendance()" class="btn-save-attendance">
+            <i class="fas fa-save"></i> Lưu Điểm Danh Hôm Nay
+        </button>
+    </div>
+
+</div>
         </section>
 
         <section id="news" style="display: none;">
@@ -258,5 +269,6 @@
 </body>
 
 </html>
+
 
 
