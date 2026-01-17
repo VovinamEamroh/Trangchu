@@ -1,25 +1,77 @@
-// --- KHỞI TẠO DỮ LIỆU ---
+// --- 1. NHÚNG THƯ VIỆN FIREBASE (ONLINE) ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// --- 2. CẤU HÌNH KẾT NỐI (Đã điền thông tin từ ảnh của bạn) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDn0yqXve0rYSEKFommFKV8J-McHEU-Nh4",
+    authDomain: "vovinam-web-4eb57.firebaseapp.com",
+    projectId: "vovinam-web-4eb57",
+    storageBucket: "vovinam-web-4eb57.firebasestorage.app",
+    messagingSenderId: "296472265647",
+    appId: "1:296472265647:web:91a6261be41fc00f88255a"
+};
+
+// Khởi tạo kết nối
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- 3. BIẾN TOÀN CỤC & KHỞI TẠO ---
 let currentClub = "";
-let students = JSON.parse(localStorage.getItem('vovinamStudents')) || [];
-let posts = JSON.parse(localStorage.getItem('vovinamPosts')) || [
-    { title: "Thông báo tập huấn", content: "Kế hoạch tập huấn quý 1 cho các CLB...", date: "2024-01-15" }
-];
-let currentUser = JSON.parse(localStorage.getItem('vovinamCurrentUser'));
+let students = []; // Dữ liệu sẽ được tải từ Firebase về đây
+let posts = [];    // Dữ liệu tin tức tải từ Firebase
+let currentUser = JSON.parse(localStorage.getItem('vovinamCurrentUser')); 
 
-// Chạy hàm kiểm tra ngay khi load trang
+const COLL_STUDENTS = "students";
+const COLL_POSTS = "posts";
+
+// --- 4. LẮNG NGHE DỮ LIỆU THỜI GIAN THỰC (REAL-TIME) ---
+
+// Lắng nghe danh sách MÔN SINH
+onSnapshot(collection(db, COLL_STUDENTS), (snapshot) => {
+    students = [];
+    snapshot.forEach((doc) => {
+        let data = doc.data();
+        data.firebaseId = doc.id; // Lưu ID thật của Firebase
+        students.push(data);
+    });
+    // Nếu đang mở bảng quản lý thì vẽ lại ngay
+    if(document.getElementById('club-manager') && document.getElementById('club-manager').style.display === 'block') {
+        renderAttendanceTable();
+    }
+});
+
+// Lắng nghe danh sách TIN TỨC
+const qPosts = query(collection(db, COLL_POSTS), orderBy("id", "desc")); 
+onSnapshot(qPosts, (snapshot) => {
+    posts = [];
+    snapshot.forEach((doc) => {
+        let data = doc.data();
+        data.firebaseId = doc.id;
+        posts.push(data);
+    });
+    renderNews(); // Vẽ lại tin tức ngay
+});
+
+// Chạy khởi tạo
 checkLoginStatus();
-renderNews();
 
-// --- 0. HÀM KIỂM TRA QUYỀN ADMIN (QUAN TRỌNG) ---
-// Quy ước: Số điện thoại '000' là Huấn Luyện Viên (Admin)
-function isAdmin() {
-    return currentUser && currentUser.phone === '000';
+// --- 5. CÁC HÀM HỖ TRỢ & GIAO DIỆN ---
+// Lưu ý: Vì dùng type="module", các hàm được gọi từ HTML (onclick) cần gán vào window
+
+window.showSection = function(sectionId) {
+    document.querySelectorAll('main > section').forEach(sec => sec.style.display = 'none');
+    document.getElementById(sectionId).style.display = 'block';
+    window.scrollTo(0, 0);
 }
 
-// --- 1. XỬ LÝ ĐĂNG KÝ & ĐĂNG NHẬP ---
+function isAdmin() { return currentUser && currentUser.phone === '000'; }
+window.formatDoc = function(cmd, value = null) { document.execCommand(cmd, false, value); }
 
-// Xử lý ĐĂNG KÝ
-document.getElementById('register-form').addEventListener('submit', function(e) {
+// --- 6. AUTHENTICATION (ĐĂNG KÝ / ĐĂNG NHẬP) ---
+
+// ĐĂNG KÝ (Lưu lên Firebase)
+document.getElementById('register-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const name = document.getElementById('reg-name').value;
     const phone = document.getElementById('reg-phone').value;
@@ -27,61 +79,50 @@ document.getElementById('register-form').addEventListener('submit', function(e) 
     const club = document.getElementById('reg-club').value;
 
     if (!club) { alert("Vui lòng chọn Câu Lạc Bộ!"); return; }
-    
-    // Kiểm tra SĐT trùng
-    if (students.some(s => s.phone === phone)) { 
-        alert("Số điện thoại này đã được đăng ký!"); return; 
-    }
+    // Kiểm tra trùng SĐT trong danh sách đã tải về
+    if (students.some(s => s.phone === phone)) { alert("Số điện thoại này đã được đăng ký!"); return; }
 
     const newStudent = {
-        id: Date.now(),
-        club: club,
-        name: name,
-        phone: phone,
-        dob: dob,
-        img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", // Ảnh mặc định
+        id: Date.now(), // ID số để sort nếu cần
+        club: club, name: name, phone: phone, dob: dob,
+        img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
         isPresent: false
     };
 
-    students.push(newStudent);
-    localStorage.setItem('vovinamStudents', JSON.stringify(students));
-    alert("Đăng ký thành công! Vui lòng đăng nhập.");
-    document.getElementById('register-form').reset();
-    showSection('login');
+    try {
+        await addDoc(collection(db, COLL_STUDENTS), newStudent);
+        alert("Đăng ký thành công! Dữ liệu đã lên hệ thống Online. Vui lòng đăng nhập.");
+        document.getElementById('register-form').reset();
+        window.showSection('login');
+    } catch (error) {
+        console.error("Lỗi:", error);
+        alert("Lỗi kết nối! Không thể đăng ký.");
+    }
 });
 
-// Xử lý ĐĂNG NHẬP
+// ĐĂNG NHẬP
 document.getElementById('login-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const name = document.getElementById('login-name').value.trim();
     const phone = document.getElementById('login-phone').value.trim();
 
-    // --- CỬA SAU DÀNH CHO ADMIN ---
-    // Nếu nhập tên "Admin" và SĐT "000" thì vào quyền quản trị
     if (phone === '000' && name.toLowerCase() === 'admin') {
         currentUser = { name: "Huấn Luyện Viên", phone: "000", club: "ALL", role: "admin" };
-        loginSuccess();
-        return;
+        loginSuccess(); return;
     }
 
-    // Kiểm tra môn sinh thường
     const user = students.find(s => s.phone === phone && s.name.toLowerCase() === name.toLowerCase());
-    if (user) {
-        currentUser = user;
-        loginSuccess();
-    } else {
-        alert("Thông tin không đúng hoặc chưa đăng ký!");
-    }
+    if (user) { currentUser = user; loginSuccess(); }
+    else { alert("Thông tin không đúng hoặc chưa đăng ký!"); }
 });
 
 function loginSuccess() {
     localStorage.setItem('vovinamCurrentUser', JSON.stringify(currentUser));
     alert(`Xin chào ${currentUser.name}!`);
     checkLoginStatus();
-    showSection('home');
+    window.showSection('home');
 }
 
-// Hàm cập nhật giao diện theo trạng thái đăng nhập
 function checkLoginStatus() {
     const authActions = document.getElementById('auth-actions');
     const userDisplay = document.getElementById('user-display');
@@ -89,77 +130,50 @@ function checkLoginStatus() {
     const menuItems = document.querySelectorAll('#club-menu-list li');
 
     if (currentUser) {
-        // Đã đăng nhập
         authActions.style.display = 'none';
-        userDisplay.style.display = 'flex';
+        userDisplay.style.display = 'block'; // Hiện dropdown user
         userNameSpan.innerText = isAdmin() ? `HLV: ${currentUser.name}` : `Môn sinh: ${currentUser.name}`;
 
-        // Lọc Menu: Admin thấy hết, Môn sinh chỉ thấy CLB của mình
         menuItems.forEach(item => {
             const clubAttr = item.getAttribute('data-club');
-            if (isAdmin() || clubAttr === currentUser.club) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
+            item.style.display = (isAdmin() || clubAttr === currentUser.club) ? 'block' : 'none';
         });
     } else {
-        // Chưa đăng nhập
         authActions.style.display = 'flex';
         userDisplay.style.display = 'none';
-        // Hiện hết menu (nhưng bấm vào sẽ bị chặn)
         menuItems.forEach(item => item.style.display = 'block');
     }
 }
 
-function logout() {
+window.logout = function() {
     currentUser = null;
     localStorage.removeItem('vovinamCurrentUser');
     checkLoginStatus();
-    showSection('home');
+    window.showSection('home');
 }
 
-// --- 2. QUẢN LÝ CLB & PHÂN QUYỀN ---
-
-function showSection(sectionId) {
-    document.querySelectorAll('main > section').forEach(sec => sec.style.display = 'none');
-    document.getElementById(sectionId).style.display = 'block';
-    window.scrollTo(0, 0);
-}
-
-function openClubManager(clubName) {
-    if (!currentUser) { alert("Vui lòng đăng nhập!"); showSection('login'); return; }
-
-    // Logic chặn quyền truy cập trái phép
-    if (!isAdmin() && currentUser.club !== clubName) {
-        alert(`Bạn là thành viên CLB ${currentUser.club}, không được xem CLB ${clubName}!`);
-        return;
-    }
+// --- 7. QUẢN LÝ CLB ---
+window.openClubManager = function(clubName) {
+    if (!currentUser) { alert("Vui lòng đăng nhập!"); window.showSection('login'); return; }
+    if (!isAdmin() && currentUser.club !== clubName) { alert(`Bạn không có quyền xem CLB ${clubName}!`); return; }
 
     currentClub = clubName;
     document.getElementById('current-club-title').innerText = `Danh sách: ${clubName}`;
-    
-    // ẨN/HIỆN NÚT "THÊM MÔN SINH"
     const btnAdd = document.getElementById('btn-add-student');
-    if (btnAdd) {
-        // Nếu là Admin thì hiện, Môn sinh thì ẩn
-        btnAdd.style.display = isAdmin() ? 'block' : 'none';
-    }
+    if (btnAdd) btnAdd.style.display = isAdmin() ? 'block' : 'none';
 
-    showSection('club-manager');
-    switchTab('attendance');
+    window.showSection('club-manager');
+    window.switchTab('attendance');
 }
 
-function switchTab(tabId) {
+window.switchTab = function(tabId) {
     document.getElementById('tab-attendance').style.display = 'none';
     document.getElementById('tab-add-student').style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
     document.getElementById(`tab-${tabId}`).style.display = 'block';
-    
-    // Active đúng nút tab
     if(tabId === 'attendance') {
-        document.querySelector('.tab-btn').classList.add('active'); // Nút đầu tiên (Điểm danh)
+        document.querySelector('.tab-btn').classList.add('active');
         renderAttendanceTable();
     } else {
         const btnAdd = document.getElementById('btn-add-student');
@@ -167,379 +181,273 @@ function switchTab(tabId) {
     }
 }
 
-// --- 3. HIỂN THỊ DANH SÁCH & ĐIỂM DANH ---
-
 function renderAttendanceTable() {
     const tbody = document.getElementById('attendance-list');
     tbody.innerHTML = "";
-    
-    // Lọc môn sinh theo CLB
     const clubStudents = students.filter(s => s.club === currentClub);
 
-    if (clubStudents.length === 0) {
-        document.getElementById('empty-list-msg').style.display = 'block';
-        return;
-    } else {
-        document.getElementById('empty-list-msg').style.display = 'none';
-    }
+    if (clubStudents.length === 0) { document.getElementById('empty-list-msg').style.display = 'block'; return; }
+    else { document.getElementById('empty-list-msg').style.display = 'none'; }
 
     clubStudents.forEach((student, index) => {
         const tr = document.createElement('tr');
+        // Nút gạt điểm danh (Admin mới dùng được) - Gọi hàm update online
+        let statusHTML = isAdmin() 
+            ? `<label class="switch"><input type="checkbox" ${student.isPresent ? 'checked' : ''} onchange="toggleAttendance('${student.firebaseId}', ${!student.isPresent})"><span class="slider"></span></label>`
+            : (student.isPresent ? `<span style="color:green;font-weight:bold;">Có mặt</span>` : `<span style="color:red;font-weight:bold;">Vắng</span>`);
         
-        // --- XỬ LÝ CỘT TRẠNG THÁI (QUAN TRỌNG) ---
-        let statusHTML = '';
-        if (isAdmin()) {
-            // ADMIN: Được hiện nút gạt để chỉnh sửa
-            statusHTML = `
-                <label class="switch">
-                    <input type="checkbox" ${student.isPresent ? 'checked' : ''} onchange="toggleAttendance(${student.id})">
-                    <span class="slider"></span>
-                </label>`;
-        } else {
-            // MÔN SINH: Chỉ hiện chữ (Read-only)
-            if (student.isPresent) {
-                statusHTML = `<span style="color: green; font-weight: bold;"><i class="fas fa-check-circle"></i> Có mặt</span>`;
-            } else {
-                statusHTML = `<span style="color: red; font-weight: bold;"><i class="fas fa-times-circle"></i> Vắng</span>`;
-            }
-        }
-
-        // Highlight dòng của chính mình (nếu là môn sinh)
         const isMe = !isAdmin() && currentUser.phone === student.phone;
         const rowStyle = isMe ? 'background-color: #e3f2fd; border-left: 5px solid #0055A4;' : ''; 
-
-        tr.innerHTML = `
-            <td style="${rowStyle}">${index + 1}</td>
-            <td style="${rowStyle}"><img src="${student.img}" class="student-avatar"></td>
-            <td style="${rowStyle}">
-                <strong>${student.name}</strong> ${isMe ? '<span style="color:red; font-size: 0.8em">(Bạn)</span>' : ''}<br>
-                <small>${student.dob}</small>
-            </td>
-            <td style="${rowStyle}">${statusHTML}</td>
-        `;
+        
+        tr.innerHTML = `<td style="${rowStyle}">${index + 1}</td><td style="${rowStyle}"><img src="${student.img}" class="student-avatar"></td><td style="${rowStyle}"><strong>${student.name}</strong> ${isMe ? '(Bạn)' : ''}<br><small>${student.dob}</small></td><td style="${rowStyle}">${statusHTML}</td>`;
         tbody.appendChild(tr);
     });
 }
 
-// Hàm xử lý khi Admin gạt nút điểm danh
-function toggleAttendance(id) {
-    const student = students.find(s => s.id === id);
-    if (student) {
-        student.isPresent = !student.isPresent;
-        localStorage.setItem('vovinamStudents', JSON.stringify(students));
-        // Không cần render lại toàn bộ để tránh giật lag, nút gạt tự đổi màu CSS
-    }
+// CẬP NHẬT ĐIỂM DANH LÊN MÂY
+window.toggleAttendance = async function(firebaseId, newStatus) {
+    if(!firebaseId) return;
+    const docRef = doc(db, COLL_STUDENTS, firebaseId);
+    await updateDoc(docRef, { isPresent: newStatus });
 }
 
-// Xử lý Form thêm môn sinh (Chỉ Admin mới thấy và dùng được)
-document.getElementById('add-student-form').addEventListener('submit', function(e) {
+// THÊM MÔN SINH (Admin)
+document.getElementById('add-student-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const name = document.getElementById('student-name').value;
     const phone = document.getElementById('student-phone').value;
     const dob = document.getElementById('student-dob').value;
     
-    // Lưu ý: Ảnh đang dùng link giả lập, thực tế cần xử lý file upload
-    const imgUrl = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-
-    // Logic thêm vào mảng
     const newStudent = { 
-        id: Date.now(), 
-        club: currentClub, 
-        name: name, 
-        phone: phone, 
-        dob: dob, 
-        img: imgUrl, 
-        isPresent: false 
+        id: Date.now(), club: currentClub, name: name, phone: phone, dob: dob, 
+        img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", isPresent: false 
     };
     
-    students.push(newStudent);
-    localStorage.setItem('vovinamStudents', JSON.stringify(students));
-    
-    alert(`Đã thêm môn sinh ${name} vào danh sách!`);
+    await addDoc(collection(db, COLL_STUDENTS), newStudent);
+    alert(`Đã thêm môn sinh ${name} lên hệ thống!`);
     document.getElementById('add-student-form').reset();
-    switchTab('attendance'); // Quay về bảng danh sách
+    window.switchTab('attendance');
 });
 
-// --- 4. CHỨC NĂNG TIN TỨC & BÌNH LUẬN (ĐÃ NÂNG CẤP: SỬA/XÓA) ---
-
-// Biến lưu trạng thái
-let currentViewingPostId = null;
-let editingPostId = null; // Biến mới: Theo dõi bài viết đang được sửa
-
-// Hàm hỗ trợ tạo ID ngẫu nhiên
-function generateId() {
-    return '_' + Math.random().toString(36).substr(2, 9);
+// --- 8. PROFILE SYSTEM (CẬP NHẬT LÊN MÂY) ---
+window.showProfile = function() {
+    if (!currentUser) return;
+    window.showSection('profile');
+    document.getElementById('profile-name').value = currentUser.name;
+    document.getElementById('profile-phone').value = currentUser.phone;
+    document.getElementById('profile-dob').value = currentUser.dob || "";
+    document.getElementById('profile-club').value = currentUser.club;
+    document.getElementById('profile-img-preview').src = currentUser.img || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    window.disableEditMode();
 }
 
-// Ẩn/Hiện form đăng bài (Đã cập nhật logic cho chế độ Sửa)
-function togglePostForm(isEditMode = false) {
+window.enableEditProfile = function() {
+    document.getElementById('profile-name').disabled = false;
+    document.getElementById('profile-phone').disabled = false;
+    document.getElementById('profile-dob').disabled = false;
+    document.getElementById('btn-edit-profile').style.display = 'none';
+    document.getElementById('btn-save-profile').style.display = 'block';
+}
+
+window.disableEditMode = function() {
+    document.getElementById('profile-name').disabled = true;
+    document.getElementById('profile-phone').disabled = true;
+    document.getElementById('profile-dob').disabled = true;
+    document.getElementById('btn-edit-profile').style.display = 'block';
+    document.getElementById('btn-save-profile').style.display = 'none';
+}
+
+window.previewProfileAvatar = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { document.getElementById('profile-img-preview').src = e.target.result; }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+window.saveProfile = async function(e) {
+    e.preventDefault();
+    if (!currentUser || !confirm("Lưu thay đổi?")) return;
+
+    const newName = document.getElementById('profile-name').value;
+    const newPhone = document.getElementById('profile-phone').value;
+    const newDob = document.getElementById('profile-dob').value;
+    const newImg = document.getElementById('profile-img-preview').src;
+
+    const student = students.find(s => s.phone === currentUser.phone);
+    
+    if (student && student.firebaseId) {
+        const docRef = doc(db, COLL_STUDENTS, student.firebaseId);
+        await updateDoc(docRef, { name: newName, phone: newPhone, dob: newDob, img: newImg });
+        
+        currentUser.name = newName; currentUser.phone = newPhone; currentUser.dob = newDob; currentUser.img = newImg;
+        localStorage.setItem('vovinamCurrentUser', JSON.stringify(currentUser));
+        
+        alert("Đã cập nhật hồ sơ!");
+        window.disableEditMode();
+        checkLoginStatus();
+    } else {
+        alert("Lỗi: Không tìm thấy dữ liệu gốc!");
+    }
+}
+
+// --- 9. NEWS SYSTEM (CẬP NHẬT LÊN MÂY) ---
+let currentViewingPostId = null;
+let editingFirebaseId = null; 
+
+window.togglePostForm = function(isEditMode = false) {
     const form = document.getElementById('post-creator');
     const submitBtn = form.querySelector('.btn-submit');
-    
     if (form.style.display === 'none') {
         form.style.display = 'block';
-        // Nếu KHÔNG phải chế độ sửa -> Reset form thành trống để đăng bài mới
         if (!isEditMode) {
             document.getElementById('post-title').value = "";
             document.getElementById('post-content').innerHTML = "";
-            editingPostId = null;
+            editingFirebaseId = null;
             if(submitBtn) submitBtn.innerText = "Đăng bài";
         }
-    } else {
-        // Nếu đang hiện mà người dùng bấm tắt (và không phải đang sửa) -> Ẩn đi
-        if (!isEditMode) form.style.display = 'none';
-    }
+    } else if (!isEditMode) { form.style.display = 'none'; }
 }
 
-function formatDoc(cmd, value = null) { document.execCommand(cmd, false, value); }
-// --- HÀM XỬ LÝ MEDIA (MỚI) ---
-
-function handleMediaUpload(input) {
+window.handleMediaUpload = function(input) {
     const file = input.files[0];
-    if (!file) return;
-
-    // Kiểm tra kích thước file (Giới hạn 3MB để tránh đơ trình duyệt)
-    if (file.size > 3 * 1024 * 1024) {
-        alert("Vui lòng chọn ảnh/video dưới 3MB để đảm bảo tốc độ website!");
-        return;
-    }
-
+    if (!file || file.size > 3*1024*1024) { alert("File quá lớn (>3MB)!"); return; }
     const reader = new FileReader();
-
-    // Khi đọc file xong
     reader.onload = function(e) {
-        const result = e.target.result; // Chuỗi Base64 của file
-        let mediaHTML = "";
-
-        // Kiểm tra xem là Video hay Ảnh
-        if (file.type.startsWith('video')) {
-            mediaHTML = `<br><video controls src="${result}"></video><br>`;
-        } else {
-            mediaHTML = `<br><img src="${result}" alt="Uploaded Image"><br>`;
-        }
-
-        // Chèn vào khung soạn thảo
-        const editor = document.getElementById('post-content');
-        
-        // Cách 1: Chèn vào cuối (Đơn giản nhất, ít lỗi)
-        editor.innerHTML += mediaHTML;
-        
-        // Reset input để chọn lại file khác nếu muốn
+        const mediaHTML = file.type.startsWith('video') ? `<br><video controls src="${e.target.result}"></video><br>` : `<br><img src="${e.target.result}"><br>`;
+        document.getElementById('post-content').innerHTML += mediaHTML;
         input.value = "";
     };
-
-    // Bắt đầu đọc file
     reader.readAsDataURL(file);
 }
 
-// Hàm Đăng bài / Lưu bài sửa (Logic mới quan trọng)
-function publishPost() {
+window.publishPost = async function() {
     const title = document.getElementById('post-title').value;
     const content = document.getElementById('post-content').innerHTML;
-    
-    if(!title) { alert("Vui lòng nhập tiêu đề!"); return; }
+    if(!title) { alert("Thiếu tiêu đề!"); return; }
 
-    if (editingPostId) {
-        // --- TRƯỜNG HỢP 1: ĐANG SỬA BÀI ---
-        const post = posts.find(p => p.id === editingPostId);
-        if (post) {
-            post.title = title;
-            post.content = content;
-            alert("Đã cập nhật bài viết!");
+    try {
+        if (editingFirebaseId) {
+            const docRef = doc(db, COLL_POSTS, editingFirebaseId);
+            await updateDoc(docRef, { title: title, content: content });
+            alert("Đã cập nhật!");
+            editingFirebaseId = null;
+        } else {
+            await addDoc(collection(db, COLL_POSTS), { 
+                id: Date.now(), title: title, content: content, date: new Date().toLocaleDateString('vi-VN'), comments: [] 
+            });
+            alert("Đã đăng bài!");
         }
-        editingPostId = null; // Reset trạng thái sau khi sửa xong
-    } else {
-        // --- TRƯỜNG HỢP 2: ĐĂNG BÀI MỚI ---
-        const newPost = {
-            id: generateId(),
-            title: title,
-            content: content,
-            date: new Date().toLocaleDateString('vi-VN'),
-            comments: []
-        };
-        posts.unshift(newPost);
-        alert("Đã đăng bài viết mới!");
-    }
-
-    localStorage.setItem('vovinamPosts', JSON.stringify(posts));
-    document.getElementById('post-creator').style.display = 'none';
-    renderNews(); // Vẽ lại danh sách
-}
-
-// Hàm XÓA bài viết (Mới)
-function deletePost(postId) {
-    if (confirm("Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác!")) {
-        posts = posts.filter(p => p.id !== postId); // Lọc bỏ bài viết có ID tương ứng
-        localStorage.setItem('vovinamPosts', JSON.stringify(posts));
-        renderNews();
-        alert("Đã xóa bài viết.");
+        document.getElementById('post-creator').style.display = 'none';
+    } catch (e) {
+        console.error(e);
+        alert("Lỗi khi đăng bài!");
     }
 }
 
-// Hàm SỬA bài viết (Mới)
-function editPost(postId) {
-    const post = posts.find(p => p.id === postId);
+window.deletePost = async function(firebaseId) {
+    if (confirm("Xóa bài viết này?")) {
+        await deleteDoc(doc(db, COLL_POSTS, firebaseId));
+        alert("Đã xóa!");
+    }
+}
+
+window.editPost = function(firebaseId) {
+    const post = posts.find(p => p.firebaseId === firebaseId);
     if (!post) return;
-
-    // Mở form ở chế độ Edit (true)
-    togglePostForm(true); 
-
-    // Đổ dữ liệu cũ vào form
+    window.togglePostForm(true);
     document.getElementById('post-title').value = post.title;
     document.getElementById('post-content').innerHTML = post.content;
-    
-    // Gán ID bài đang sửa vào biến
-    editingPostId = postId;
-    
-    // Đổi tên nút bấm thành "Lưu cập nhật" cho dễ hiểu
-    const submitBtn = document.querySelector('#post-creator .btn-submit');
-    if(submitBtn) submitBtn.innerText = "Lưu cập nhật";
-    
-    // Cuộn màn hình lên chỗ form
-    document.getElementById('post-creator').scrollIntoView({behavior: "smooth"});
+    editingFirebaseId = firebaseId; 
+    document.querySelector('#post-creator .btn-submit').innerText = "Lưu cập nhật";
+    document.getElementById('post-creator').scrollIntoView({behavior:"smooth"});
 }
 
-// Hiển thị danh sách bài viết (Đã thêm nút Sửa/Xóa cho Admin)
 function renderNews() {
-    const listContainer = document.getElementById('news-feed');
-    listContainer.innerHTML = "";
-    
+    const list = document.getElementById('news-feed');
+    list.innerHTML = "";
     const btnCreate = document.getElementById('btn-create-post');
-    if(btnCreate) {
-        btnCreate.style.display = isAdmin() ? 'block' : 'none';
-    }
+    if(btnCreate) btnCreate.style.display = isAdmin() ? 'block' : 'none';
 
     posts.forEach(post => {
         const div = document.createElement('div');
         div.className = 'news-item';
-        
-        // Tạo nút Admin (Sửa/Xóa) chỉ hiển thị khi là Admin
-        let adminActions = "";
-        if (isAdmin()) {
-            adminActions = `
-                <div class="admin-actions">
-                    <button class="btn-edit-post" onclick="editPost('${post.id}')"><i class="fas fa-edit"></i> Sửa</button>
-                    <button class="btn-delete-post" onclick="deletePost('${post.id}')"><i class="fas fa-trash-alt"></i> Xóa</button>
-                </div>
-            `;
-        }
-
-        div.innerHTML = `
-            <h3>${post.title}</h3>
-            <small style="color:#666;">${post.date}</small>
-            <div class="news-preview">${post.content}</div>
-            <div class="read-more-btn" onclick="viewPost('${post.id}')">Xem chi tiết & Bình luận >></div>
-            ${adminActions}
-        `;
-        listContainer.appendChild(div);
+        let adminActions = isAdmin() ? `<div class="admin-actions"><button class="btn-edit-post" onclick="editPost('${post.firebaseId}')"><i class="fas fa-edit"></i> Sửa</button><button class="btn-delete-post" onclick="deletePost('${post.firebaseId}')"><i class="fas fa-trash"></i> Xóa</button></div>` : "";
+        div.innerHTML = `<h3>${post.title}</h3><small style="color:#666;">${post.date}</small><div class="news-preview">${post.content}</div><div class="read-more-btn" onclick="viewPost('${post.firebaseId}')">Xem & Bình luận >></div>${adminActions}`;
+        list.appendChild(div);
     });
 }
 
-// Chuyển sang màn hình xem chi tiết
-function viewPost(postId) {
-    const post = posts.find(p => p.id === postId);
+window.viewPost = function(firebaseId) {
+    const post = posts.find(p => p.firebaseId === firebaseId);
     if (!post) return;
-
-    currentViewingPostId = postId;
-
+    currentViewingPostId = firebaseId;
     document.getElementById('news-list-view').style.display = 'none';
     document.getElementById('news-detail-view').style.display = 'block';
-    
-    const btnCreate = document.getElementById('btn-create-post');
-    if(btnCreate) btnCreate.style.display = 'none';
-
+    if(document.getElementById('btn-create-post')) document.getElementById('btn-create-post').style.display = 'none';
     document.getElementById('detail-title').innerText = post.title;
     document.getElementById('detail-date').innerText = post.date;
     document.getElementById('detail-content').innerHTML = post.content;
-
     renderComments(post);
     window.scrollTo(0, 0);
 }
 
-// Quay lại danh sách
-function backToNewsList() {
+window.backToNewsList = function() {
     document.getElementById('news-detail-view').style.display = 'none';
     document.getElementById('news-list-view').style.display = 'block';
     currentViewingPostId = null;
-    
-    const btnCreate = document.getElementById('btn-create-post');
-    if(btnCreate && isAdmin()) btnCreate.style.display = 'block';
+    if(document.getElementById('btn-create-post') && isAdmin()) document.getElementById('btn-create-post').style.display = 'block';
 }
 
-// --- XỬ LÝ BÌNH LUẬN (GIỮ NGUYÊN NHƯNG CẦN DÁN LẠI VÌ ĐÃ XÓA PHẦN CUỐI) ---
-
 function renderComments(post) {
-    const commentList = document.getElementById('comment-list');
-    commentList.innerHTML = "";
-
+    const list = document.getElementById('comment-list');
+    list.innerHTML = "";
     if (!post.comments) post.comments = [];
-
-    if (post.comments.length === 0) {
-        commentList.innerHTML = "<p style='color:#777; font-style:italic;'>Chưa có bình luận nào.</p>";
-        return;
-    }
-
-    post.comments.forEach(cmt => {
+    if (post.comments.length === 0) { list.innerHTML = "<p style='color:#777;font-style:italic;'>Chưa có bình luận.</p>"; return; }
+    post.comments.forEach((cmt, idx) => {
         const div = document.createElement('div');
         div.className = 'comment-item';
-        
-        let displayName = cmt.userName;
-        let roleClass = "";
-        
-        if (cmt.isAdminComment) {
-            displayName = "Huấn Luyện Viên - Quản Trị";
-            roleClass = "admin-role";
-        }
-
-        let deleteBtn = "";
-        if (isAdmin()) {
-            deleteBtn = `<button class="btn-delete-cmt" onclick="deleteComment('${cmt.id}')" title="Xóa bình luận"><i class="fas fa-trash"></i></button>`;
-        }
-
-        div.innerHTML = `
-            <div class="comment-author ${roleClass}">
-                ${displayName} <span class="comment-date">(${cmt.date})</span>
-            </div>
-            <div class="comment-text">${cmt.text}</div>
-            ${deleteBtn}
-        `;
-        commentList.appendChild(div);
+        let role = cmt.isAdminComment ? "admin-role" : "";
+        let name = cmt.isAdminComment ? "HLV - Quản Trị" : cmt.userName;
+        let delBtn = isAdmin() ? `<button class="btn-delete-cmt" onclick="deleteComment('${post.firebaseId}', ${idx})"><i class="fas fa-trash"></i></button>` : "";
+        div.innerHTML = `<div class="comment-author ${role}">${name} <span class="comment-date">(${cmt.date})</span></div><div class="comment-text">${cmt.text}</div>${delBtn}`;
+        list.appendChild(div);
     });
 }
 
-function submitComment(e) {
+window.submitComment = async function(e) {
     e.preventDefault();
-    if (!currentUser) { alert("Vui lòng đăng nhập để bình luận!"); showSection('login'); return; }
-
-    const input = document.getElementById('comment-input');
-    const text = input.value.trim();
+    if (!currentUser) { alert("Vui lòng đăng nhập!"); window.showSection('login'); return; }
+    const text = document.getElementById('comment-input').value.trim();
     if (!text) return;
 
-    const postIndex = posts.findIndex(p => p.id === currentViewingPostId);
-    if (postIndex === -1) return;
-
-    const newComment = {
-        id: generateId(),
-        userId: currentUser.phone,
-        userName: currentUser.name,
-        text: text,
-        date: new Date().toLocaleString('vi-VN'),
-        isAdminComment: isAdmin()
+    const post = posts.find(p => p.firebaseId === currentViewingPostId);
+    if (!post) return;
+    
+    const newComment = { 
+        userId: currentUser.phone, userName: currentUser.name, text: text, 
+        date: new Date().toLocaleString(), isAdminComment: isAdmin() 
     };
 
-    if (!posts[postIndex].comments) posts[postIndex].comments = [];
-    posts[postIndex].comments.push(newComment);
-    localStorage.setItem('vovinamPosts', JSON.stringify(posts));
+    let updatedComments = post.comments || [];
+    updatedComments.push(newComment);
 
-    renderComments(posts[postIndex]);
-    input.value = "";
+    const docRef = doc(db, COLL_POSTS, currentViewingPostId);
+    await updateDoc(docRef, { comments: updatedComments });
+    document.getElementById('comment-input').value = "";
 }
 
-function deleteComment(commentId) {
-    if (!confirm("Bạn có chắc muốn xóa bình luận này?")) return;
-    const postIndex = posts.findIndex(p => p.id === currentViewingPostId);
-    if (postIndex === -1) return;
-    posts[postIndex].comments = posts[postIndex].comments.filter(c => c.id !== commentId);
-    localStorage.setItem('vovinamPosts', JSON.stringify(posts));
-    renderComments(posts[postIndex]);
+window.deleteComment = async function(firebaseId, commentIndex) {
+    if (!confirm("Xóa bình luận?")) return;
+    const post = posts.find(p => p.firebaseId === firebaseId);
+    if(!post) return;
+
+    let updatedComments = post.comments.filter((_, idx) => idx !== commentIndex);
+    const docRef = doc(db, COLL_POSTS, firebaseId);
+    await updateDoc(docRef, { comments: updatedComments });
+}
+
+window.toggleMobileMenu = function() {
+    const nav = document.querySelector('nav');
+    if(nav) nav.classList.toggle('active');
 }
