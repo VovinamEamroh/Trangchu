@@ -181,7 +181,6 @@
 
         <section id="history-section" style="display: none;">
             <h2 id="history-title" class="section-title">Lịch Sử Điểm Danh</h2>
-            
             <div id="history-filters" class="history-controls" style="display: none;">
                 <div class="control-group">
                     <label>Chọn ngày:</label>
@@ -198,7 +197,6 @@
                 </div>
                 <button onclick="window.loadHistoryData()" class="btn-refresh"><i class="fas fa-sync"></i> Xem</button>
             </div>
-
             <div class="table-responsive">
                 <table class="history-table">
                     <thead>
@@ -207,15 +205,13 @@
                             <th>Môn Sinh</th>
                             <th>Trạng Thái</th>
                             <th>Ghi chú</th>
-                            <th id="history-action-header" style="display: none;">Hành động</th>
                         </tr>
                     </thead>
-                    <tbody id="history-list">
-                        </tbody>
+                    <tbody id="history-list"></tbody>
                 </table>
             </div>
-            <p id="history-loading" style="text-align: center; color: #666; display: none;">Đang tải dữ liệu...</p>
-            <p id="history-empty" style="text-align: center; color: #666; display: none;">Không tìm thấy dữ liệu điểm danh.</p>
+            <p id="history-loading" style="text-align: center; color: #666; display: none;">Đang tải...</p>
+            <p id="history-empty" style="text-align: center; color: #666; display: none;">Không có dữ liệu.</p>
         </section>
 
         <section id="news" style="display: none;">
@@ -229,9 +225,9 @@
                 <h3>Soạn thảo bài viết</h3>
                 <input type="text" id="post-title" placeholder="Tiêu đề bài viết..." class="post-input">
                 <div class="rich-editor-toolbar">
-                    <button type="button" onclick="window.formatDoc('bold')" title="In đậm"><b>B</b></button>
-                    <button type="button" onclick="window.formatDoc('italic')" title="In nghiêng"><i>I</i></button>
-                    <button type="button" onclick="window.formatDoc('underline')" title="Gạch chân"><u>U</u></button>
+                    <button type="button" onclick="window.formatDoc('bold')"><b>B</b></button>
+                    <button type="button" onclick="window.formatDoc('italic')"><i>I</i></button>
+                    <button type="button" onclick="window.formatDoc('underline')"><u>U</u></button>
                     <label for="media-upload" class="btn-tool-media"><i class="fas fa-photo-video"></i> Thêm Media</label>
                     <input type="file" id="media-upload" accept="image/*, video/*" style="display: none;" onchange="window.handleMediaUpload(this)">
                 </div>
@@ -311,7 +307,6 @@
         <p>&copy; Vovinam Lộc Shadow</p>
     </footer>
 
-   <script type="module" src="fix_module.js?v=1.0"></script> (Thêm ?v=1.0
+    <script type="module" src="script.js?v=3.0"></script>
 </body>
 </html>
-
