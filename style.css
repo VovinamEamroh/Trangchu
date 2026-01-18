@@ -267,3 +267,25 @@ input:not(:disabled) { background-color: #fff; border: 1px solid var(--vovinam-b
     max-width: 100% !important;
     height: auto;
 }
+
+/* --- NÚT XEM & BÌNH LUẬN (NỔI BẬT) --- */
+.read-more-btn { 
+    display: inline-block; /* Giúp nút nhận kích thước */
+    background: var(--vovinam-blue); /* Màu nền xanh Vovinam */
+    color: white; /* Chữ trắng */
+    padding: 10px 20px; /* Độ rộng của nút */
+    border-radius: 30px; /* Bo tròn 2 đầu */
+    text-decoration: none; /* Bỏ gạch chân */
+    font-weight: bold; 
+    margin-top: 15px; /* Cách nội dung bên trên */
+    margin-bottom: 5px;
+    cursor: pointer; 
+    transition: all 0.3s ease; /* Hiệu ứng mượt */
+    box-shadow: 0 4px 6px rgba(0, 85, 164, 0.3); /* Đổ bóng xanh */
+}
+
+.read-more-btn:hover { 
+    background: #004494; /* Màu xanh đậm hơn khi di chuột */
+    transform: translateY(-2px); /* Bay lên nhẹ */
+    box-shadow: 0 6px 12px rgba(0, 85, 164, 0.4); /* Bóng đậm hơn */
+}
