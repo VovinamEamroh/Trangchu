@@ -128,7 +128,7 @@
         <section id="club-manager" style="display: none;">
             <h2 id="current-club-title" class="section-title">Quản lý CLB</h2>
             <div class="club-tabs">
-                <button class="tab-btn active" onclick="window.switchTab('attendance')">Điểm Danh</button>
+                <button class="tab-btn active" id="btn-tab-attendance" onclick="window.switchTab('attendance')">Điểm Danh</button>
                 <button class="tab-btn" id="btn-add-student" onclick="window.switchTab('add-student')">Thêm Môn Sinh</button>
             </div>
             
@@ -245,9 +245,7 @@
                 <div class="profile-header">
                     <div class="avatar-wrapper">
                         <img id="profile-img-preview" class="profile-avatar-large" src="">
-                        <label for="profile-avatar-upload" id="btn-change-avatar" class="btn-upload-avatar" style="display: none;">
-                            <i class="fas fa-camera"></i>
-                        </label>
+                        <label for="profile-avatar-upload" id="btn-change-avatar" class="btn-upload-avatar" style="display: none;"><i class="fas fa-camera"></i></label>
                         <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="window.previewProfileAvatar(this)">
                     </div>
                     <h2>Hồ Sơ Cá Nhân</h2>
