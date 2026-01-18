@@ -101,24 +101,67 @@ input:checked + .slider:before { transform: translateX(26px); }
 .btn-save-attendance { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 30px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; }
 .btn-save-attendance:hover { background-color: #218838; transform: scale(1.05); }
 
-/* NEWS SYSTEM */
-.news-item { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid var(--vovinam-blue); transition: transform 0.2s; }
-.news-item:hover { transform: translateY(-3px); }
-.news-preview { color: #555; margin: 10px 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.read-more-btn { color: var(--vovinam-blue); font-weight: bold; cursor: pointer; text-decoration: underline; }
-.btn-back { background: #ddd; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; margin-bottom: 15px; }
-.article-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-.article-content { line-height: 1.6; font-size: 1.1rem; margin-top: 20px; }
-.comment-section { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
-.comment-item { background: white; padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e0e0e0; position: relative; }
-.comment-author { font-weight: bold; color: var(--vovinam-blue); font-size: 0.9rem; }
-.comment-author.admin-role { color: #d32f2f; }
-.btn-comment { background: var(--vovinam-blue); color: white; border: none; padding: 0 20px; border-radius: 20px; cursor: pointer; }
-.admin-actions { margin-top: 10px; display: flex; gap: 10px; border-top: 1px dashed #eee; padding-top: 10px; }
-.btn-edit-post { background-color: #FFD700; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-.btn-delete-post { background-color: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-.rich-editor-toolbar { display: flex; gap: 5px; margin-bottom: 5px; align-items: center; }
-.post-editor img, .post-editor video, .article-content img, .article-content video { max-width: 100%; height: auto; border-radius: 5px; margin: 10px 0; display: block; }
+/* News styles - Giao diện Tin tức */
+.news-item { 
+    background: white; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+
+/* Thanh tiêu đề tin tức (Căn chỉnh tiêu đề trái, nút phải) */
+.news-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.news-header h2 {
+    margin: 0;
+    color: var(--vovinam-blue);
+}
+
+/* Nút "Đăng bài mới" (Đã trang trí đẹp) */
+.btn-create-news { 
+    background: linear-gradient(135deg, var(--vovinam-yellow), #ffecb3); /* Màu vàng chuyển sắc */
+    color: #333; 
+    padding: 10px 25px; 
+    border: none; 
+    border-radius: 50px; /* Bo tròn */
+    cursor: pointer; 
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Đổ bóng */
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-create-news:hover { 
+    transform: translateY(-2px); /* Bay lên khi di chuột */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+/* Khung soạn thảo */
+#post-creator { 
+    background: white; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    border-radius: 8px; 
+    border: 1px solid var(--vovinam-blue); 
+}
+
+.post-editor { 
+    border: 1px solid #ccc; 
+    min-height: 100px; 
+    padding: 10px; 
+    border-radius: 4px; 
+    margin-bottom: 10px; 
+}
 
 /* PROFILE */
 .profile-container { max-width: 600px; margin: 30px auto; border-top: 5px solid var(--vovinam-blue); }
@@ -135,3 +178,4 @@ input:not(:disabled) { background-color: #fff; border: 1px solid var(--vovinam-b
 .btn-user-menu { background: transparent; border: 1px solid white; color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
 .btn-user-menu:hover { background: rgba(255,255,255,0.2); }
 .user-dropdown-content { right: 0; left: auto; min-width: 200px; }
+
