@@ -19,8 +19,6 @@
             <nav>
                 <ul class="main-menu">
                     <li onclick="showSection('home')"><a href="#">Trang chủ</a></li>
-                    <li onclick="handleAdminClick()"><a href="#"><i class="fas fa-user-shield"></i> Quản trị</a></li>
-                    
                     <li class="dropdown">
                         <a href="#">Câu Lạc Bộ <i class="fas fa-caret-down"></i></a>
                         <ul class="dropdown-content">
@@ -65,45 +63,6 @@
                     </div>
                     <div class="club-card" onclick="openClubManager('Y Ngông')">
                         <i class="fas fa-fist-raised"></i> <h4>CLB Y Ngông</h4>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="admin-dashboard" style="display: none;">
-            <h2 class="section-title">Bảng Quản Trị Viên</h2>
-            
-            <div class="admin-container">
-                <div class="calendar-wrapper">
-                    <div class="calendar-header">
-                        <button onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-                        <h3 id="calendar-month-year">Tháng ...</h3>
-                        <button onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <div class="calendar-grid" id="calendar-body"></div>
-                </div>
-
-                <div id="daily-records-section" style="display: none; margin-top: 30px;">
-                    <h3 id="selected-date-title" style="color: var(--vovinam-blue); border-bottom: 2px solid var(--vovinam-yellow); padding-bottom: 10px;">Dữ liệu ngày ...</h3>
-                    <div id="club-records-list" class="records-grid"></div>
-                </div>
-
-                <div id="record-detail-view" style="display: none; margin-top: 30px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h4 id="detail-club-name">Chi tiết</h4>
-                        <button onclick="closeDetailView()" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Đóng</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="detail-table">
-                            <thead>
-                                <tr>
-                                    <th>Tên Môn Sinh</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Ghi Chú</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detail-student-list"></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -164,6 +123,7 @@
                 <button class="tab-btn active" onclick="switchTab('attendance')">Điểm Danh</button>
                 <button class="tab-btn" id="btn-add-student" onclick="switchTab('add-student')">Thêm Môn Sinh</button>
             </div>
+            
             <div id="tab-add-student" class="tab-content" style="display: none;">
                 <form id="add-student-form">
                     <div class="form-group">
@@ -185,6 +145,7 @@
                     <button type="submit" class="btn-submit">Thêm vào danh sách</button>
                 </form>
             </div>
+
             <div id="tab-attendance" class="tab-content">
                 <div class="table-responsive">
                     <table id="attendance-table">
@@ -203,6 +164,7 @@
                 <div id="empty-list-msg" style="text-align: center; margin-top: 20px; color: #666; display: none;">
                     Chưa có môn sinh nào.
                 </div>
+                
                 <div id="attendance-actions" style="text-align: center; margin-top: 20px; display: none;">
                     <button onclick="saveDailyAttendance()" class="btn-save-attendance">
                         <i class="fas fa-save"></i> Lưu Điểm Danh Hôm Nay
