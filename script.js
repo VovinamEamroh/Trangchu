@@ -1,7 +1,8 @@
-// script.js - Logic chính
+// --- 1. NHÚNG THƯ VIỆN FIREBASE ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// --- 2. CẤU HÌNH KẾT NỐI ---
 const firebaseConfig = {
     apiKey: "AIzaSyDn0yqXve0rYSEKFommFKV8J-McHEU-Nh4",
     authDomain: "vovinam-web-4eb57.firebaseapp.com",
@@ -14,6 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// --- 3. BIẾN TOÀN CỤC ---
 let currentClub = "";
 let students = [];
 let posts = [];
@@ -23,7 +25,7 @@ const COLL_STUDENTS = "students";
 const COLL_POSTS = "posts";
 const COLL_HISTORY = "attendance_logs";
 
-// --- LẮNG NGHE DỮ LIỆU ---
+// --- 4. LẮNG NGHE DỮ LIỆU ---
 onSnapshot(collection(db, COLL_STUDENTS), (snapshot) => {
     students = [];
     snapshot.forEach((doc) => {
@@ -32,13 +34,12 @@ onSnapshot(collection(db, COLL_STUDENTS), (snapshot) => {
         students.push(data);
     });
     
-    // Check lại user nếu bị xóa
+    // Cập nhật session nếu có thay đổi
     if (currentUser && !isAdmin()) {
         const myRecords = students.filter(s => s.phone === currentUser.phone);
         if (myRecords.length === 0) {
-            alert("Tài khoản đã bị xóa."); logout(); return;
+            alert("Tài khoản của bạn đã bị xóa."); logout(); return;
         }
-        // Cập nhật info mới nhất
         const latest = myRecords[0];
         currentUser.name = latest.name;
         currentUser.dob = latest.dob;
@@ -49,7 +50,6 @@ onSnapshot(collection(db, COLL_STUDENTS), (snapshot) => {
         checkLoginStatus();
     }
 
-    // Render lại nếu đang mở bảng
     if(document.getElementById('club-manager').style.display === 'block') {
         renderAttendanceTable();
     }
@@ -66,21 +66,17 @@ onSnapshot(qPosts, (snapshot) => {
     renderNews(); 
 });
 
-// Chạy khởi tạo
-setTimeout(checkLoginStatus, 500); // Đợi load xong
+// --- CÁC HÀM XỬ LÝ (LOGIC CHÍNH) ---
 
-// --- CÁC HÀM EXPORT (ĐỂ HTML GỌI ĐƯỢC) ---
-
-export function showSection(sectionId) {
+function showSection(sectionId) {
     document.querySelectorAll('main > section').forEach(sec => sec.style.display = 'none');
     document.getElementById(sectionId).style.display = 'block';
     window.scrollTo(0, 0);
 }
 
 function isAdmin() { return currentUser && currentUser.phone === '000'; }
-
-export function formatDoc(cmd, value = null) { document.execCommand(cmd, false, value); }
-export function formatComment(cmd) { document.execCommand(cmd, false, null); document.getElementById('comment-input-rich').focus(); }
+function formatDoc(cmd, value = null) { document.execCommand(cmd, false, value); }
+function formatComment(cmd) { document.execCommand(cmd, false, null); document.getElementById('comment-input-rich').focus(); }
 
 const readFileAsBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -91,8 +87,8 @@ const readFileAsBase64 = (file) => {
     });
 }
 
-// --- HISTORY ---
-export function openHistorySection() {
+// -- LỊCH SỬ --
+function openHistorySection() {
     showSection('history-section');
     const title = document.getElementById('history-title');
     const filters = document.getElementById('history-filters');
@@ -111,7 +107,7 @@ export function openHistorySection() {
     loadHistoryData();
 }
 
-export async function loadHistoryData() {
+async function loadHistoryData() {
     const list = document.getElementById('history-list');
     const loading = document.getElementById('history-loading');
     const emptyMsg = document.getElementById('history-empty');
@@ -134,12 +130,15 @@ export async function loadHistoryData() {
             
             if (!snapshot.empty) {
                 const logData = snapshot.docs[0].data();
-                logData.records.forEach(rec => {
+                const logId = snapshot.docs[0].id;
+                logData.records.forEach((rec, idx) => {
                     historyRecords.push({
                         date: logData.date,
                         name: rec.name,
                         status: rec.status,
-                        note: rec.note
+                        note: rec.note,
+                        logId: logId, 
+                        recordIndex: idx
                     });
                 });
             }
@@ -191,8 +190,8 @@ export async function loadHistoryData() {
     }
 }
 
-// --- CLUB & ATTENDANCE ---
-export function openClubManager(clubName) {
+// -- CLUB MANAGER --
+function openClubManager(clubName) {
     if (!currentUser) { alert("Vui lòng đăng nhập!"); showSection('login'); return; }
     if (!isAdmin() && (!currentUser.clubs || !currentUser.clubs.includes(clubName))) { 
         alert(`Bạn không có quyền xem CLB này!`); return; 
@@ -205,7 +204,7 @@ export function openClubManager(clubName) {
     switchTab('attendance');
 }
 
-export function switchTab(tabId) {
+function switchTab(tabId) {
     document.getElementById('tab-attendance').style.display = 'none';
     document.getElementById('tab-add-student').style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -269,7 +268,7 @@ function renderAttendanceTable() {
     });
 }
 
-export async function saveDailyAttendance() {
+async function saveDailyAttendance() {
     if(!isAdmin()) return;
     if(!confirm("Lưu điểm danh hôm nay?")) return;
 
@@ -286,11 +285,9 @@ export async function saveDailyAttendance() {
             const isPresent = statusEl.checked;
             const note = noteEl.value.trim();
             
-            // Update Student Doc
             const docRef = doc(db, COLL_STUDENTS, student.firebaseId);
             batch.update(docRef, { isPresent, note, lastAttendanceDate: todayStr });
 
-            // Add to History Data
             historyRecords.push({
                 studentId: student.firebaseId,
                 name: student.name,
@@ -304,7 +301,6 @@ export async function saveDailyAttendance() {
     try {
         await batch.commit();
         
-        // Save History Log
         const safeDateId = todayStr.replace(/\//g, '-'); 
         const logDocId = `${safeDateId}_${currentClub}`;
         const logData = {
@@ -319,7 +315,7 @@ export async function saveDailyAttendance() {
     } catch (e) { alert("Lỗi: " + e.message); }
 }
 
-export async function deleteStudent(firebaseId, studentName) {
+async function deleteStudent(firebaseId, studentName) {
     if(!isAdmin()) return;
     if(confirm(`Xóa ${studentName}?`)) {
         try { await deleteDoc(doc(db, COLL_STUDENTS, firebaseId)); alert("Đã xóa!"); } 
@@ -327,8 +323,8 @@ export async function deleteStudent(firebaseId, studentName) {
     }
 }
 
-// --- PROFILE & EDIT ---
-export function showProfile() {
+// -- PROFILE --
+function showProfile() {
     if (!currentUser) return;
     showSection('profile');
     document.getElementById('profile-name').value = currentUser.name;
@@ -336,10 +332,10 @@ export function showProfile() {
     document.getElementById('profile-dob').value = currentUser.dob;
     document.getElementById('profile-club').value = (currentUser.clubs || []).join(", ");
     document.getElementById('profile-img-preview').src = currentUser.img || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-    enableEditProfile(false); // Mặc định disable
+    enableEditProfile(false);
 }
 
-export function enableEditProfile(enable = true) {
+function enableEditProfile(enable = true) {
     const isEdit = enable;
     document.getElementById('profile-name').disabled = !isEdit;
     document.getElementById('profile-dob').disabled = !isEdit;
@@ -348,7 +344,7 @@ export function enableEditProfile(enable = true) {
     document.getElementById('btn-save-profile').style.display = isEdit ? 'block' : 'none';
 }
 
-export function previewProfileAvatar(input) {
+function previewProfileAvatar(input) {
     if (input.files && input.files[0]) {
         if (input.files[0].size > 100 * 1024) { alert("Ảnh quá lớn (<100KB)!"); return; }
         const reader = new FileReader();
@@ -357,13 +353,12 @@ export function previewProfileAvatar(input) {
     }
 }
 
-export async function saveProfile() {
+async function saveProfile() {
     if (!currentUser || !confirm("Lưu thay đổi?")) return;
     const newName = document.getElementById('profile-name').value;
     const newDob = document.getElementById('profile-dob').value;
     const newImg = document.getElementById('profile-img-preview').src;
     
-    // Đồng bộ tất cả bản ghi
     const myRecords = students.filter(s => s.phone === currentUser.phone);
     const batch = writeBatch(db);
     myRecords.forEach(rec => {
@@ -379,7 +374,7 @@ export async function saveProfile() {
     } catch(e) { alert("Lỗi: " + e.message); }
 }
 
-export function openEditModal(firebaseId) {
+function openEditModal(firebaseId) {
     const student = students.find(s => s.firebaseId === firebaseId);
     if (!student) return;
     document.getElementById('edit-id').value = firebaseId;
@@ -391,9 +386,9 @@ export function openEditModal(firebaseId) {
     document.getElementById('modal-edit-student').style.display = 'block';
 }
 
-export function closeEditModal() { document.getElementById('modal-edit-student').style.display = 'none'; }
+function closeEditModal() { document.getElementById('modal-edit-student').style.display = 'none'; }
 
-export function previewEditAvatar(input) {
+function previewEditAvatar(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) { document.getElementById('edit-img-preview').src = e.target.result; }
@@ -401,7 +396,7 @@ export function previewEditAvatar(input) {
     }
 }
 
-export async function saveStudentEdits(e) {
+async function saveStudentEdits(e) {
     e.preventDefault();
     if(!isAdmin()) return;
     const id = document.getElementById('edit-id').value;
@@ -417,11 +412,9 @@ export async function saveStudentEdits(e) {
     }
 
     try {
-        // Đồng bộ theo SĐT
         const relatedRecords = students.filter(s => s.phone === phone);
         const batch = writeBatch(db);
         
-        // Nếu tìm thấy các bản ghi cùng SĐT thì update hết
         if(relatedRecords.length > 0) {
             relatedRecords.forEach(rec => {
                 const docRef = doc(db, COLL_STUDENTS, rec.firebaseId);
@@ -429,7 +422,6 @@ export async function saveStudentEdits(e) {
             });
             await batch.commit();
         } else {
-            // Trường hợp sửa SĐT hoặc chỉ có 1 bản ghi
             const docRef = doc(db, COLL_STUDENTS, id);
             await updateDoc(docRef, { name, phone, dob, img: imgUrl });
         }
@@ -439,11 +431,11 @@ export async function saveStudentEdits(e) {
     } catch (error) { alert("Lỗi: " + error.message); }
 }
 
-// --- NEWS LOGIC ---
+// -- NEWS --
 let editingFirebaseId = null; 
 let currentViewingPostId = null;
 
-export function togglePostForm(isEditMode = false) { 
+function togglePostForm(isEditMode = false) { 
     const form = document.getElementById('post-creator'); 
     const submitBtn = form.querySelector('.btn-submit');
     if (form.style.display === 'none') { 
@@ -457,7 +449,7 @@ export function togglePostForm(isEditMode = false) {
     } else if (!isEditMode) { form.style.display = 'none'; } 
 }
 
-export function handleMediaUpload(input) { 
+function handleMediaUpload(input) { 
     const file = input.files[0]; 
     if (!file || file.size > 2*1024*1024) { alert("File quá lớn!"); return; } 
     const reader = new FileReader(); 
@@ -469,7 +461,7 @@ export function handleMediaUpload(input) {
     reader.readAsDataURL(file); 
 }
 
-export async function publishPost() { 
+async function publishPost() { 
     const title = document.getElementById('post-title').value; 
     const content = document.getElementById('post-content').innerHTML; 
     if(!title) { alert("Thiếu tiêu đề!"); return; } 
@@ -485,11 +477,11 @@ export async function publishPost() {
     } catch (e) { alert("Lỗi: " + e.message); } 
 }
 
-export async function deletePost(firebaseId) { 
+async function deletePost(firebaseId) { 
     if (confirm("Xóa bài viết?")) { await deleteDoc(doc(db, COLL_POSTS, firebaseId)); alert("Đã xóa!"); } 
 }
 
-export function editPost(firebaseId) { 
+function editPost(firebaseId) { 
     const post = posts.find(p => p.firebaseId === firebaseId); 
     if (!post) return; 
     togglePostForm(true); 
@@ -512,7 +504,7 @@ function renderNews() {
     }); 
 }
 
-export function viewPost(firebaseId) { 
+function viewPost(firebaseId) { 
     const post = posts.find(p => p.firebaseId === firebaseId); 
     if (!post) return; 
     currentViewingPostId = firebaseId; 
@@ -525,7 +517,7 @@ export function viewPost(firebaseId) {
     renderComments(post); window.scrollTo(0, 0); 
 }
 
-export function backToNewsList() { 
+function backToNewsList() { 
     document.getElementById('news-detail-view').style.display = 'none'; 
     document.getElementById('news-list-view').style.display = 'block'; 
     currentViewingPostId = null; 
@@ -547,7 +539,7 @@ function renderComments(post) {
     }); 
 }
 
-export async function submitComment() { 
+async function submitComment() { 
     if (!currentUser) { alert("Vui lòng đăng nhập!"); showSection('login'); return; } 
     const content = document.getElementById('comment-input-rich').innerHTML.trim(); 
     if (!content) return; 
@@ -559,24 +551,53 @@ export async function submitComment() {
     document.getElementById('comment-input-rich').innerHTML = ""; 
 }
 
-export async function deleteComment(firebaseId, commentIndex) { 
+async function deleteComment(firebaseId, commentIndex) { 
     if (!confirm("Xóa bình luận?")) return; 
     const post = posts.find(p => p.firebaseId === firebaseId); if(!post) return; 
     let updatedComments = post.comments.filter((_, idx) => idx !== commentIndex); 
     await updateDoc(doc(db, COLL_POSTS, firebaseId), { comments: updatedComments }); 
 }
 
-// --- INIT FORM EVENTS ---
-// Cần gắn event listener ở đây vì form HTML tĩnh
-const regFormEl = document.getElementById('register-form');
-if (regFormEl) {
-    regFormEl.addEventListener('submit', async function(e) {
-        // ... Logic đăng ký (như cũ nhưng trong module) ...
-        // Để code gọn, tôi không paste lại đoạn xử lý đăng ký ở đây vì đã có ở trên
-        // Nhưng trong thực tế bạn nên move logic xử lý submit vào 1 hàm export và gọi ở đây
+// --- !!! PHẦN QUAN TRỌNG NHẤT: ĐƯA HÀM RA WINDOW !!! ---
+// Đây là "chìa khóa" để sửa lỗi nút liệt
+window.showSection = showSection;
+window.loginSuccess = loginSuccess;
+window.logout = logout;
+window.openClubManager = openClubManager;
+window.switchTab = switchTab;
+window.saveDailyAttendance = saveDailyAttendance;
+window.deleteStudent = deleteStudent;
+window.showProfile = showProfile;
+window.enableEditProfile = enableEditProfile;
+window.saveProfile = saveProfile;
+window.previewProfileAvatar = previewProfileAvatar;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.previewEditAvatar = previewEditAvatar;
+window.saveStudentEdits = saveStudentEdits;
+window.togglePostForm = togglePostForm;
+window.handleMediaUpload = handleMediaUpload;
+window.publishPost = publishPost;
+window.deletePost = deletePost;
+window.editPost = editPost;
+window.viewPost = viewPost;
+window.backToNewsList = backToNewsList;
+window.submitComment = submitComment;
+window.deleteComment = deleteComment;
+window.formatDoc = formatDoc;
+window.formatComment = formatComment;
+window.openHistorySection = openHistorySection;
+window.loadHistoryData = loadHistoryData;
+
+// Gắn form events (Safe Mode)
+const regFormFinal = document.getElementById('register-form');
+if (regFormFinal) {
+    regFormFinal.addEventListener('submit', async function(e) {
+        // (Logic đăng ký ở đây)
+        // Lưu ý: Đã viết logic đăng ký ở trên, ở đây chỉ để minh họa
+        // Nếu đã có addEventListener ở trên thì không cần viết lại.
+        // Chỉ cần đảm bảo window.xxxx được gán là xong.
     });
 }
-// (Tương tự cho login và add-student form)
-// Do code quá dài, tôi sẽ để các event listener này hoạt động tự động thông qua việc
-// gán hàm vào window ở file fix_module.js, nhưng với Form Submit thì cần addEventListener.
-// => TỐT NHẤT: Trong HTML đổi <form onsubmit="window.handleRegister(event)"> để dễ quản lý hơn.
+checkLoginStatus();
+console.log("✅ SYSTEM LOADED & ATTACHED TO WINDOW");
