@@ -7,22 +7,9 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
-/* Sửa lỗi Footer */
-body { 
-    background-color: var(--bg-light); 
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-main { 
-    padding: 20px; max-width: 1200px; margin: 0 auto; 
-    flex: 1; width: 100%;
-}
-footer { 
-    background: #333; color: white; text-align: center; padding: 20px; 
-    margin-top: auto; width: 100%;
-}
+body { background-color: var(--bg-light); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
+main { padding: 20px; max-width: 1200px; margin: 0 auto; flex: 1; width: 100%; }
+footer { background: #333; color: white; text-align: center; padding: 20px; margin-top: auto; width: 100%; }
 
 /* HEADER */
 header { background-color: var(--vovinam-blue); color: white; padding: 10px 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
@@ -69,7 +56,7 @@ nav ul li a:hover { color: var(--vovinam-yellow); }
 input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
 .btn-submit { background: var(--vovinam-blue); color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; }
 
-/* CLUB MANAGER & ATTENDANCE */
+/* CLUB MANAGER */
 .club-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
 .tab-btn { padding: 10px 20px; border: none; background: #ddd; cursor: pointer; border-radius: 5px 5px 0 0; }
 .tab-btn.active { background: var(--vovinam-blue); color: white; }
@@ -88,6 +75,53 @@ input:checked + .slider:before { transform: translateX(26px); }
 .btn-save-attendance { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 30px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; }
 .btn-save-attendance:hover { background-color: #218838; transform: scale(1.05); }
 
+/* --- NÚT SỬA THÔNG TIN (MỚI) --- */
+.btn-edit-student {
+    background-color: #FFC107; /* Màu vàng */
+    color: #333;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: all 0.2s;
+}
+.btn-edit-student:hover {
+    background-color: #FFB300;
+    transform: scale(1.1);
+}
+
+/* --- MODAL (CỬA SỔ BẬT LÊN) --- */
+.modal {
+    display: none; /* Mặc định ẩn */
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5); /* Nền mờ */
+    animation: fadeIn 0.3s;
+}
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%; max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-top: 5px solid var(--vovinam-blue);
+}
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-modal:hover { color: black; }
+@keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+
 /* NEWS SYSTEM */
 .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
 .news-header h2 { margin: 0; color: var(--vovinam-blue); }
@@ -98,134 +132,39 @@ input:checked + .slider:before { transform: translateX(26px); }
 .news-preview { color: #555; margin: 10px 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .read-more-btn { display: inline-block; background: var(--vovinam-blue); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: bold; margin-top: 15px; margin-bottom: 5px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0, 85, 164, 0.3); }
 .read-more-btn:hover { background: #004494; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 85, 164, 0.4); }
-
-/* --- NÚT QUAY LẠI MỚI (ĐẸP HƠN) --- */
-.btn-back-custom {
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ccc;
-    padding: 10px 20px;
-    border-radius: 30px; /* Bo tròn */
-    cursor: pointer;
-    font-weight: 600;
-    margin-bottom: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-}
-.btn-back-custom:hover {
-    background: var(--vovinam-blue);
-    color: white;
-    border-color: var(--vovinam-blue);
-    transform: translateX(-3px); /* Hiệu ứng lùi nhẹ */
-}
-
+.btn-back-custom { background: #f0f0f0; color: #333; border: 1px solid #ccc; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+.btn-back-custom:hover { background: var(--vovinam-blue); color: white; border-color: var(--vovinam-blue); transform: translateX(-3px); }
 .article-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
 .article-content { line-height: 1.6; font-size: 1.1rem; margin-top: 20px; }
 
-/* --- BÌNH LUẬN NÂNG CẤP --- */
+/* COMMENTS */
 .comment-section { background: #f9f9f9; padding: 25px; border-radius: 8px; border: 1px solid #eee; }
-
-/* Item bình luận chung */
-.comment-item { 
-    background: white; 
-    padding: 15px; 
-    border-radius: 10px; 
-    margin-bottom: 15px; 
-    border: 1px solid #e0e0e0;
-    position: relative;
-}
-
-/* Bình luận của HLV (Quản trị) */
-.comment-item.is-admin {
-    background-color: #fffde7; /* Màu vàng nhạt */
-    border-left: 5px solid var(--vovinam-yellow);
-}
-
-/* Bình luận của Môn sinh */
-.comment-item.is-student {
-    background-color: #ffffff;
-    border-left: 5px solid #ccc;
-}
-
+.comment-item { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e0e0e0; position: relative; }
+.comment-item.is-admin { background-color: #fffde7; border-left: 5px solid var(--vovinam-yellow); }
+.comment-item.is-student { background-color: #ffffff; border-left: 5px solid #ccc; }
 .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .comment-author-name { font-weight: bold; color: var(--vovinam-blue); font-size: 1rem; }
-.comment-role-badge { 
-    background: var(--vovinam-blue); color: white; 
-    font-size: 0.7rem; padding: 2px 6px; 
-    border-radius: 4px; margin-left: 8px; text-transform: uppercase; 
-}
+.comment-role-badge { background: var(--vovinam-blue); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; text-transform: uppercase; }
 .comment-date { font-size: 0.8rem; color: #888; }
 .comment-text { color: #333; line-height: 1.5; }
-
-.btn-delete-cmt {
-    position: absolute; right: 10px; top: 10px;
-    background: white; border: 1px solid #eee;
-    width: 25px; height: 25px; border-radius: 50%;
-    color: #999; cursor: pointer; display: flex; justify-content: center; align-items: center;
-}
+.btn-delete-cmt { position: absolute; right: 10px; top: 10px; background: white; border: 1px solid #eee; width: 25px; height: 25px; border-radius: 50%; color: #999; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 .btn-delete-cmt:hover { color: red; border-color: red; }
-
-/* KHUNG NHẬP BÌNH LUẬN MỚI */
-.comment-input-wrapper {
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    margin-top: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-.comment-toolbar {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-    display: flex; gap: 5px;
-}
-.comment-toolbar button {
-    background: #f0f0f0; border: none;
-    width: 30px; height: 30px; border-radius: 4px;
-    cursor: pointer; font-weight: bold;
-}
+.comment-input-wrapper { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.comment-toolbar { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; display: flex; gap: 5px; }
+.comment-toolbar button { background: #f0f0f0; border: none; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 .comment-toolbar button:hover { background: #ddd; }
-
-#comment-input-rich {
-    min-height: 60px;
-    outline: none;
-    padding: 5px;
-    color: #333;
-    font-size: 0.95rem;
-}
-/* Placeholder giả */
-#comment-input-rich:empty:before {
-    content: attr(placeholder);
-    color: #999;
-    display: block;
-}
-
-.btn-send-comment {
-    background: var(--vovinam-blue);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    display: flex; align-items: center; gap: 8px;
-    margin-left: auto; /* Đẩy sang phải */
-}
+#comment-input-rich { min-height: 60px; outline: none; padding: 5px; color: #333; font-size: 0.95rem; }
+#comment-input-rich:empty:before { content: attr(placeholder); color: #999; display: block; }
+.btn-send-comment { background: var(--vovinam-blue); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .btn-send-comment:hover { background: #004494; }
 
-/* ADMIN POST ACTIONS */
+/* MEDIA & ADMIN POST ACTIONS */
 .admin-actions { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; gap: 12px; }
 .btn-edit-post, .btn-delete-post { border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .btn-edit-post { background-color: var(--vovinam-yellow); color: #333; }
 .btn-edit-post:hover { background-color: #ffca28; transform: translateY(-2px); }
 .btn-delete-post { background-color: #ff4444; color: white; }
 .btn-delete-post:hover { background-color: #cc0000; transform: translateY(-2px); }
-
-/* MEDIA */
 .rich-editor-toolbar { display: flex; gap: 5px; margin-bottom: 5px; align-items: center; }
 .post-editor img, .post-editor video, .article-content img, .article-content video, .news-preview img, .news-preview video { border-radius: 5px; margin: 10px auto; display: block; }
 .news-preview img, .news-preview video { max-width: 100% !important; width: auto; max-height: 250px; object-fit: cover; }
