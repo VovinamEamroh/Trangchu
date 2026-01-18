@@ -223,9 +223,7 @@
                             <button type="button" onclick="formatComment('italic')" title="In nghiêng"><i>I</i></button>
                             <button type="button" onclick="formatComment('underline')" title="Gạch chân"><u>U</u></button>
                         </div>
-                        
                         <div id="comment-input-rich" contenteditable="true" placeholder="Viết bình luận của bạn..."></div>
-                        
                         <button onclick="submitComment()" class="btn-send-comment">
                             <i class="fas fa-paper-plane"></i> Gửi bình luận
                         </button>
@@ -269,6 +267,36 @@
             </div>
         </section>
 
+        <div id="modal-edit-student" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeEditModal()">&times;</span>
+                <h3>Chỉnh Sửa Thông Tin</h3>
+                <form id="form-edit-student" onsubmit="saveStudentEdits(event)">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group">
+                        <label>Họ và Tên:</label>
+                        <input type="text" id="edit-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại:</label>
+                        <input type="number" id="edit-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày sinh:</label>
+                        <input type="date" id="edit-dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cập nhật Ảnh đại diện:</label>
+                        <div style="text-align: center; margin-bottom: 10px;">
+                            <img id="edit-img-preview" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd;">
+                        </div>
+                        <input type="file" id="edit-img-upload" accept="image/*" onchange="previewEditAvatar(this)">
+                    </div>
+                    <button type="submit" class="btn-submit">Lưu Thay Đổi</button>
+                </form>
+            </div>
+        </div>
+
     </main>
 
     <footer>
@@ -278,20 +306,5 @@
     </footer>
 
     <script type="module" src="script.js"></script>
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-      const firebaseConfig = {
-        apiKey: "AIzaSyDM1PfrkNlaXpqP_-ZgYmBjk_RPXZ_mr4Q",
-        authDomain: "vovinam-11606.firebaseapp.com",
-        projectId: "vovinam-11606",
-        storageBucket: "vovinam-11606.firebasestorage.app",
-        messagingSenderId: "531907871843",
-        appId: "1:531907871843:web:2e96b22d6fb8a45cee6456",
-        measurementId: "G-JKRNWXN4Z8"
-      };
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-    </script>
 </body>
 </html>
