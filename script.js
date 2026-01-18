@@ -15,7 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- 3. BIẾN TOÀN CỤC (GẮN WINDOW ĐỂ TRÁNH MẤT) ---
+// --- 3. BIẾN TOÀN CỤC ---
 window.currentClub = "";
 window.students = [];
 window.posts = [];
@@ -34,7 +34,6 @@ onSnapshot(collection(db, COLL_STUDENTS), (snapshot) => {
         window.students.push(data);
     });
     
-    // Check lại user
     if (window.currentUser && !window.isAdmin()) {
         const myRecords = window.students.filter(s => s.phone === window.currentUser.phone);
         if (myRecords.length === 0) {
@@ -66,7 +65,7 @@ onSnapshot(qPosts, (snapshot) => {
     window.renderNews(); 
 });
 
-// --- 5. CÁC HÀM XỬ LÝ (QUAN TRỌNG: GẮN WINDOW) ---
+// --- 5. CÁC HÀM XỬ LÝ CHÍNH ---
 
 window.isAdmin = function() { return window.currentUser && window.currentUser.phone === '000'; }
 
@@ -233,7 +232,7 @@ window.deleteStudent = async function(firebaseId, studentName) {
     }
 }
 
-// --- NEWS LOGIC (PHẦN QUAN TRỌNG: ĐÃ SỬA LẠI ĐỂ HIỆN ĐỦ NÚT) ---
+// --- NEWS LOGIC ---
 let currentViewingPostId = null; 
 let editingFirebaseId = null;
 
@@ -261,7 +260,6 @@ window.renderNews = function() {
             `;
         }
 
-        // --- KHÔI PHỤC NÚT XEM & BÌNH LUẬN ---
         div.innerHTML = `
             <h3>${post.title}</h3>
             <small style="color:#666;">${post.date}</small>
@@ -481,9 +479,14 @@ window.enableEditProfile = function(enable = true) {
     document.getElementById('btn-edit-profile').style.display = enable ? 'none' : 'block';
     document.getElementById('btn-save-profile').style.display = enable ? 'block' : 'none';
 }
+// --- SỬA LỖI KIỂM TRA DUNG LƯỢNG ẢNH (DƯỚI 1MB) ---
 window.previewProfileAvatar = function(input) {
     if (input.files && input.files[0]) {
-        if (input.files[0].size > 100 * 1024) { alert("Ảnh quá lớn (<100KB)!"); return; }
+        if (input.files[0].size > 1 * 1024 * 1024) { // 1MB
+            alert("Ảnh quá lớn! Vui lòng chọn ảnh dưới 1MB."); 
+            input.value = ""; // Reset input
+            return; 
+        }
         const reader = new FileReader();
         reader.onload = function(e) { document.getElementById('profile-img-preview').src = e.target.result; }
         reader.readAsDataURL(input.files[0]);
@@ -511,8 +514,14 @@ window.openEditModal = function(firebaseId) {
     document.getElementById('modal-edit-student').style.display = 'block';
 }
 window.closeEditModal = function() { document.getElementById('modal-edit-student').style.display = 'none'; }
+// --- SỬA LỖI KIỂM TRA ẢNH TRONG MODAL SỬA ---
 window.previewEditAvatar = function(input) {
     if (input.files && input.files[0]) {
+        if (input.files[0].size > 1 * 1024 * 1024) { // 1MB
+            alert("Ảnh quá lớn! Vui lòng chọn ảnh dưới 1MB.");
+            input.value = "";
+            return;
+        }
         const reader = new FileReader();
         reader.onload = function(e) { document.getElementById('edit-img-preview').src = e.target.result; }
         reader.readAsDataURL(input.files[0]);
@@ -526,7 +535,10 @@ window.saveStudentEdits = async function(e) {
     const dob = document.getElementById('edit-dob').value;
     let imgUrl = document.getElementById('edit-img-preview').src;
     const imgInput = document.getElementById('edit-img-upload');
-    if (imgInput.files && imgInput.files[0]) { if (imgInput.files[0].size > 100 * 1024) { alert("Ảnh quá lớn!"); return; } imgUrl = await readFileAsBase64(imgInput.files[0]); }
+    if (imgInput.files && imgInput.files[0]) { 
+        if (imgInput.files[0].size > 1 * 1024 * 1024) { alert("Ảnh quá lớn! Chọn ảnh < 1MB"); return; } 
+        imgUrl = await readFileAsBase64(imgInput.files[0]); 
+    }
     try {
         const relatedRecords = window.students.filter(s => s.phone === phone);
         const batch = writeBatch(db);
@@ -549,7 +561,9 @@ setTimeout(() => {
         } else {
             const match = window.students.filter(s => s.phone === phone && s.name.toLowerCase() === name.toLowerCase());
             if(match.length > 0) {
-                window.currentUser = { ...match[0], clubs: match.map(s => s.club), role: "student" };
+                const clubs = match.map(s => s.club);
+                // Fix lỗi mất ảnh khi login
+                window.currentUser = { ...match[0], clubs: clubs, role: "student" };
                 window.loginSuccess();
             } else { alert("Thông tin sai!"); }
         }
@@ -582,7 +596,10 @@ setTimeout(() => {
         let img = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
         const exist = window.students.find(s => s.phone === phone);
         if(exist) img = exist.img;
-        if(input.files[0]) { if(input.files[0].size > 100*1024) return alert("Ảnh quá lớn"); img = await readFileAsBase64(input.files[0]); }
+        if(input.files[0]) { 
+            if(input.files[0].size > 1 * 1024 * 1024) return alert("Ảnh quá lớn (<1MB)"); 
+            img = await readFileAsBase64(input.files[0]); 
+        }
         await addDoc(collection(db, COLL_STUDENTS), { id: Date.now(), club: window.currentClub, name, phone, dob, img, isPresent: false, note: "", lastAttendanceDate: "" });
         alert("Đã thêm!"); document.getElementById('add-student-form').reset(); window.switchTab('attendance');
     });
