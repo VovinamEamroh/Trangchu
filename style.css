@@ -7,35 +7,22 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
-/* --- SỬA LỖI FOOTER: Cấu trúc Flexbox --- */
+/* Sửa lỗi Footer */
 body { 
     background-color: var(--bg-light); 
     color: var(--text-color);
-    /* Giúp trang web luôn cao bằng màn hình để đẩy footer xuống */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
-
 main { 
-    padding: 20px; 
-    max-width: 1200px; 
-    margin: 0 auto; 
-    /* Chiếm toàn bộ khoảng trống còn lại */
-    flex: 1; 
-    width: 100%;
+    padding: 20px; max-width: 1200px; margin: 0 auto; 
+    flex: 1; width: 100%;
 }
-
 footer { 
-    background: #333; 
-    color: white; 
-    text-align: center; 
-    padding: 20px; 
-    /* Luôn đẩy xuống đáy */
-    margin-top: auto; 
-    width: 100%;
+    background: #333; color: white; text-align: center; padding: 20px; 
+    margin-top: auto; width: 100%;
 }
-/* --------------------------------------- */
 
 /* HEADER */
 header { background-color: var(--vovinam-blue); color: white; padding: 10px 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
@@ -65,7 +52,7 @@ nav ul li a:hover { color: var(--vovinam-yellow); }
 .btn-logout { background: #ff4444; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
 .user-info { display: flex; align-items: center; font-weight: bold; color: var(--vovinam-yellow); }
 
-/* MAIN CONTENT COMPONENTS */
+/* MAIN CONTENT */
 .banner { background: linear-gradient(rgba(0,85,164,0.8), rgba(0,85,164,0.8)), url('https://vovinam.vn/wp-content/uploads/2019/04/vovinam-banner.jpg'); background-size: cover; color: white; text-align: center; padding: 80px 20px; border-radius: 10px; margin-bottom: 30px; }
 .slider-container { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
 .club-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 220px; text-align: center; cursor: pointer; border-bottom: 5px solid var(--vovinam-blue); }
@@ -101,67 +88,149 @@ input:checked + .slider:before { transform: translateX(26px); }
 .btn-save-attendance { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 30px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; }
 .btn-save-attendance:hover { background-color: #218838; transform: scale(1.05); }
 
-/* News styles - Giao diện Tin tức */
-.news-item { 
-    background: white; 
-    padding: 20px; 
-    margin-bottom: 20px; 
-    border-radius: 8px; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-}
+/* NEWS SYSTEM */
+.news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+.news-header h2 { margin: 0; color: var(--vovinam-blue); }
+.btn-create-news { background: linear-gradient(135deg, var(--vovinam-yellow), #ffecb3); color: #333; padding: 10px 25px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; align-items: center; gap: 8px; }
+.btn-create-news:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+.news-item { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid var(--vovinam-blue); transition: transform 0.2s; }
+.news-item:hover { transform: translateY(-3px); }
+.news-preview { color: #555; margin: 10px 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.read-more-btn { display: inline-block; background: var(--vovinam-blue); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: bold; margin-top: 15px; margin-bottom: 5px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0, 85, 164, 0.3); }
+.read-more-btn:hover { background: #004494; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 85, 164, 0.4); }
 
-/* Thanh tiêu đề tin tức (Căn chỉnh tiêu đề trái, nút phải) */
-.news-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px; 
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-}
-
-.news-header h2 {
-    margin: 0;
-    color: var(--vovinam-blue);
-}
-
-/* Nút "Đăng bài mới" (Đã trang trí đẹp) */
-.btn-create-news { 
-    background: linear-gradient(135deg, var(--vovinam-yellow), #ffecb3); /* Màu vàng chuyển sắc */
-    color: #333; 
-    padding: 10px 25px; 
-    border: none; 
-    border-radius: 50px; /* Bo tròn */
-    cursor: pointer; 
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Đổ bóng */
-    transition: transform 0.2s;
-    display: flex;
+/* --- NÚT QUAY LẠI MỚI (ĐẸP HƠN) --- */
+.btn-back-custom {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    border-radius: 30px; /* Bo tròn */
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
+    transition: all 0.2s;
+}
+.btn-back-custom:hover {
+    background: var(--vovinam-blue);
+    color: white;
+    border-color: var(--vovinam-blue);
+    transform: translateX(-3px); /* Hiệu ứng lùi nhẹ */
 }
 
-.btn-create-news:hover { 
-    transform: translateY(-2px); /* Bay lên khi di chuột */
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-}
+.article-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.article-content { line-height: 1.6; font-size: 1.1rem; margin-top: 20px; }
 
-/* Khung soạn thảo */
-#post-creator { 
+/* --- BÌNH LUẬN NÂNG CẤP --- */
+.comment-section { background: #f9f9f9; padding: 25px; border-radius: 8px; border: 1px solid #eee; }
+
+/* Item bình luận chung */
+.comment-item { 
     background: white; 
-    padding: 20px; 
-    margin-bottom: 20px; 
-    border-radius: 8px; 
-    border: 1px solid var(--vovinam-blue); 
+    padding: 15px; 
+    border-radius: 10px; 
+    margin-bottom: 15px; 
+    border: 1px solid #e0e0e0;
+    position: relative;
 }
 
-.post-editor { 
-    border: 1px solid #ccc; 
-    min-height: 100px; 
-    padding: 10px; 
-    border-radius: 4px; 
-    margin-bottom: 10px; 
+/* Bình luận của HLV (Quản trị) */
+.comment-item.is-admin {
+    background-color: #fffde7; /* Màu vàng nhạt */
+    border-left: 5px solid var(--vovinam-yellow);
 }
+
+/* Bình luận của Môn sinh */
+.comment-item.is-student {
+    background-color: #ffffff;
+    border-left: 5px solid #ccc;
+}
+
+.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.comment-author-name { font-weight: bold; color: var(--vovinam-blue); font-size: 1rem; }
+.comment-role-badge { 
+    background: var(--vovinam-blue); color: white; 
+    font-size: 0.7rem; padding: 2px 6px; 
+    border-radius: 4px; margin-left: 8px; text-transform: uppercase; 
+}
+.comment-date { font-size: 0.8rem; color: #888; }
+.comment-text { color: #333; line-height: 1.5; }
+
+.btn-delete-cmt {
+    position: absolute; right: 10px; top: 10px;
+    background: white; border: 1px solid #eee;
+    width: 25px; height: 25px; border-radius: 50%;
+    color: #999; cursor: pointer; display: flex; justify-content: center; align-items: center;
+}
+.btn-delete-cmt:hover { color: red; border-color: red; }
+
+/* KHUNG NHẬP BÌNH LUẬN MỚI */
+.comment-input-wrapper {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.comment-toolbar {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    display: flex; gap: 5px;
+}
+.comment-toolbar button {
+    background: #f0f0f0; border: none;
+    width: 30px; height: 30px; border-radius: 4px;
+    cursor: pointer; font-weight: bold;
+}
+.comment-toolbar button:hover { background: #ddd; }
+
+#comment-input-rich {
+    min-height: 60px;
+    outline: none;
+    padding: 5px;
+    color: #333;
+    font-size: 0.95rem;
+}
+/* Placeholder giả */
+#comment-input-rich:empty:before {
+    content: attr(placeholder);
+    color: #999;
+    display: block;
+}
+
+.btn-send-comment {
+    background: var(--vovinam-blue);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    display: flex; align-items: center; gap: 8px;
+    margin-left: auto; /* Đẩy sang phải */
+}
+.btn-send-comment:hover { background: #004494; }
+
+/* ADMIN POST ACTIONS */
+.admin-actions { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd; display: flex; gap: 12px; }
+.btn-edit-post, .btn-delete-post { border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.btn-edit-post { background-color: var(--vovinam-yellow); color: #333; }
+.btn-edit-post:hover { background-color: #ffca28; transform: translateY(-2px); }
+.btn-delete-post { background-color: #ff4444; color: white; }
+.btn-delete-post:hover { background-color: #cc0000; transform: translateY(-2px); }
+
+/* MEDIA */
+.rich-editor-toolbar { display: flex; gap: 5px; margin-bottom: 5px; align-items: center; }
+.post-editor img, .post-editor video, .article-content img, .article-content video, .news-preview img, .news-preview video { border-radius: 5px; margin: 10px auto; display: block; }
+.news-preview img, .news-preview video { max-width: 100% !important; width: auto; max-height: 250px; object-fit: cover; }
+.article-content img, .article-content video { max-width: 100% !important; height: auto !important; object-fit: contain; }
+.post-editor img, .post-editor video { max-width: 100% !important; height: auto; }
 
 /* PROFILE */
 .profile-container { max-width: 600px; margin: 30px auto; border-top: 5px solid var(--vovinam-blue); }
@@ -178,114 +247,3 @@ input:not(:disabled) { background-color: #fff; border: 1px solid var(--vovinam-b
 .btn-user-menu { background: transparent; border: 1px solid white; color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
 .btn-user-menu:hover { background: rgba(255,255,255,0.2); }
 .user-dropdown-content { right: 0; left: auto; min-width: 200px; }
-
-/* --- TRANG TRÍ NÚT SỬA / XÓA (ĐẸP & CHUYÊN NGHIỆP) --- */
-
-.admin-actions {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #ddd; /* Đường kẻ mờ ngăn cách */
-    display: flex;
-    gap: 12px; /* Khoảng cách giữa 2 nút */
-    justify-content: flex-start; /* Căn trái */
-}
-
-/* Kiểu dáng chung cho cả 2 nút */
-.btn-edit-post, .btn-delete-post {
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px; /* Bo góc nhẹ */
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px; /* Khoảng cách giữa icon và chữ */
-    transition: all 0.2s ease; /* Hiệu ứng mượt */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-/* 1. Nút Sửa (Màu Vàng Vovinam) */
-.btn-edit-post {
-    background-color: var(--vovinam-yellow); 
-    color: #333; /* Chữ màu tối cho dễ đọc */
-}
-
-.btn-edit-post:hover {
-    background-color: #ffca28; /* Đậm hơn khi di chuột */
-    transform: translateY(-2px); /* Bay lên nhẹ */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* 2. Nút Xóa (Màu Đỏ Cảnh Báo) */
-.btn-delete-post {
-    background-color: #ff4444;
-    color: white; /* Chữ trắng */
-}
-
-.btn-delete-post:hover {
-    background-color: #cc0000; /* Đậm hơn khi di chuột */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 68, 68, 0.3);
-}
-
-/* Chỉnh lại icon bên trong nút cho cân đối */
-.btn-edit-post i, .btn-delete-post i {
-    font-size: 1rem;
-}
-
-/* --- XỬ LÝ HÌNH ẢNH & MEDIA (SỬA LỖI TRÀN ẢNH) --- */
-
-/* 1. Quy tắc chung cho ảnh/video trong bài viết */
-.post-editor img, .post-editor video,
-.article-content img, .article-content video,
-.news-preview img, .news-preview video {
-    border-radius: 5px;
-    margin: 10px auto; /* Căn giữa ảnh */
-    display: block; /* Xuống dòng */
-}
-
-/* 2. CHẾ ĐỘ PREVIEW (Ngoài danh sách tin tức) */
-/* Thu nhỏ ảnh lại cho gọn, không chiếm hết màn hình */
-.news-preview img, .news-preview video {
-    max-width: 100% !important; /* Bắt buộc không được tràn ra ngoài khung */
-    width: auto;                /* Chiều rộng tự nhiên */
-    max-height: 250px;          /* QUAN TRỌNG: Giới hạn chiều cao chỉ 250px */
-    object-fit: cover;          /* Cắt ảnh gọn gàng vào khung 250px mà không bị méo */
-}
-
-/* 3. CHẾ ĐỘ XEM CHI TIẾT (Trong bài viết) */
-/* Phóng to ảnh rõ nét nhưng vẫn nằm trong khung */
-.article-content img, .article-content video {
-    max-width: 100% !important; /* Ảnh to tối đa bằng chiều ngang bài viết */
-    height: auto !important;    /* Chiều cao tự động theo tỷ lệ ảnh (không bị méo) */
-    object-fit: contain;        /* Hiển thị trọn vẹn nội dung ảnh */
-}
-
-/* 4. Trong khung soạn thảo (Khi Admin đăng bài) */
-.post-editor img, .post-editor video {
-    max-width: 100% !important;
-    height: auto;
-}
-
-/* --- NÚT XEM & BÌNH LUẬN (NỔI BẬT) --- */
-.read-more-btn { 
-    display: inline-block; /* Giúp nút nhận kích thước */
-    background: var(--vovinam-blue); /* Màu nền xanh Vovinam */
-    color: white; /* Chữ trắng */
-    padding: 10px 20px; /* Độ rộng của nút */
-    border-radius: 30px; /* Bo tròn 2 đầu */
-    text-decoration: none; /* Bỏ gạch chân */
-    font-weight: bold; 
-    margin-top: 15px; /* Cách nội dung bên trên */
-    margin-bottom: 5px;
-    cursor: pointer; 
-    transition: all 0.3s ease; /* Hiệu ứng mượt */
-    box-shadow: 0 4px 6px rgba(0, 85, 164, 0.3); /* Đổ bóng xanh */
-}
-
-.read-more-btn:hover { 
-    background: #004494; /* Màu xanh đậm hơn khi di chuột */
-    transform: translateY(-2px); /* Bay lên nhẹ */
-    box-shadow: 0 6px 12px rgba(0, 85, 164, 0.4); /* Bóng đậm hơn */
-}
