@@ -15,7 +15,6 @@ footer { background: #333; color: white; text-align: center; padding: 20px; marg
 header { background-color: var(--vovinam-blue); color: white; padding: 10px 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: nowrap; }
 nav { flex: 1; text-align: center; }
-.user-info, .auth-buttons { flex-shrink: 0; margin-left: 20px; }
 .logo-container { display: flex; align-items: center; }
 .logo { height: 50px; margin-right: 10px; border-radius: 50%; border: 2px solid white; background: white;}
 .logo-container h1 { font-size: 1.2rem; font-weight: bold; color: var(--vovinam-yellow); margin-right: 20px;}
@@ -75,7 +74,34 @@ input:checked + .slider:before { transform: translateX(26px); }
 .btn-save-attendance { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 30px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; }
 .btn-save-attendance:hover { background-color: #218838; transform: scale(1.05); }
 
-/* NEWS SYSTEM */
+/* --- CSS SỬA LỖI KHUNG NHẬP TIN TỨC --- */
+#post-creator {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.post-editor {
+    border: 1px solid #ccc;
+    min-height: 250px; /* Bắt buộc cao ít nhất 250px */
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    background-color: #fff; /* Nền trắng bắt buộc */
+    color: #333;
+    overflow-y: auto;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+.post-editor:focus {
+    outline: 2px solid var(--vovinam-blue);
+    border-color: transparent;
+}
+
+/* NEWS SYSTEM - NÚT ĐẸP */
 .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
 .news-header h2 { margin: 0; color: var(--vovinam-blue); }
 .btn-create-news { background: linear-gradient(135deg, var(--vovinam-yellow), #ffecb3); color: #333; padding: 10px 25px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -124,7 +150,7 @@ input:checked + .slider:before { transform: translateX(26px); }
 .article-content img, .article-content video { max-width: 100% !important; height: auto !important; object-fit: contain; }
 .post-editor img, .post-editor video { max-width: 100% !important; height: auto; }
 
-/* PROFILE */
+/* PROFILE - STYLE CỐ ĐỊNH */
 .profile-container { max-width: 600px; margin: 30px auto; border-top: 5px solid var(--vovinam-blue); }
 .profile-header { text-align: center; margin-bottom: 20px; }
 .avatar-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 10px; }
