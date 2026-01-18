@@ -19,6 +19,11 @@
             <nav>
                 <ul class="main-menu">
                     <li onclick="window.showSection('home')"><a href="#">Trang chủ</a></li>
+                    
+                    <li id="menu-history" style="display: none;" onclick="window.openHistorySection()">
+                        <a href="#"><i class="fas fa-history"></i> <span id="menu-history-text">Lịch sử</span></a>
+                    </li>
+
                     <li class="dropdown">
                         <a href="#">Câu Lạc Bộ <i class="fas fa-caret-down"></i></a>
                         <ul class="dropdown-content">
@@ -78,25 +83,25 @@
 
         <section id="login" style="display: none;">
             <div class="auth-container">
-                <h2>Đăng Nhập Môn Sinh</h2>
+                <h2>Đăng Nhập</h2>
                 <form id="login-form">
                     <div class="form-group">
                         <label>Họ và tên:</label>
-                        <input type="text" id="login-name" placeholder="Nhập họ tên đã đăng ký" required>
+                        <input type="text" id="login-name" placeholder="Nhập họ tên" required>
                     </div>
                     <div class="form-group">
                         <label>Số điện thoại:</label>
                         <input type="number" id="login-phone" placeholder="Nhập số điện thoại" required>
                     </div>
                     <button type="submit" class="btn-submit">Đăng Nhập</button>
-                    <p class="auth-link">Bạn chưa có tài khoản? <a href="#" onclick="window.showSection('register')">Đăng ký ngay</a></p>
+                    <p class="auth-link">Chưa có tài khoản? <a href="#" onclick="window.showSection('register')">Đăng ký ngay</a></p>
                 </form>
             </div>
         </section>
 
         <section id="register" style="display: none;">
             <div class="auth-container">
-                <h2>Đăng Ký Thành Viên Mới</h2>
+                <h2>Đăng Ký Thành Viên</h2>
                 <form id="register-form">
                     <div class="form-group">
                         <label>Họ và tên:</label>
@@ -111,7 +116,7 @@
                         <input type="date" id="reg-dob" required>
                     </div>
                     <div class="form-group">
-                        <label>Chọn Câu Lạc Bộ mong muốn:</label>
+                        <label>Chọn Câu Lạc Bộ:</label>
                         <select id="reg-club" required>
                             <option value="">-- Chọn CLB --</option>
                             <option value="Nguyễn Huệ">CLB Nguyễn Huệ</option>
@@ -139,7 +144,7 @@
                         <input type="text" id="student-name" placeholder="Nhập tên môn sinh..." required>
                     </div>
                     <div class="form-group">
-                        <label>Số điện thoại (PH/Môn sinh):</label>
+                        <label>Số điện thoại:</label>
                         <input type="number" id="student-phone" placeholder="Tối đa 10 số" maxlength="10" required>
                     </div>
                     <div class="form-group">
@@ -147,7 +152,7 @@
                         <input type="date" id="student-dob" required>
                     </div>
                     <div class="form-group">
-                        <label>Ảnh đại diện:</label>
+                        <label>Ảnh đại diện (Max 100KB):</label>
                         <input type="file" id="student-img" accept="image/*">
                     </div>
                     <button type="submit" class="btn-submit">Thêm vào danh sách</button>
@@ -169,16 +174,48 @@
                         <tbody id="attendance-list"></tbody>
                     </table>
                 </div>
-                <div id="empty-list-msg" style="text-align: center; margin-top: 20px; color: #666; display: none;">
-                    Chưa có môn sinh nào.
-                </div>
-                
+                <div id="empty-list-msg" style="text-align: center; margin-top: 20px; color: #666; display: none;">Chưa có môn sinh nào.</div>
                 <div id="attendance-actions" style="text-align: center; margin-top: 20px; display: none;">
-                    <button onclick="window.saveDailyAttendance()" class="btn-save-attendance">
-                        <i class="fas fa-save"></i> Lưu Điểm Danh Hôm Nay
-                    </button>
+                    <button onclick="window.saveDailyAttendance()" class="btn-save-attendance"><i class="fas fa-save"></i> Lưu Điểm Danh Hôm Nay</button>
                 </div>
             </div>
+        </section>
+
+        <section id="history-section" style="display: none;">
+            <h2 id="history-title" class="section-title">Lịch Sử Điểm Danh</h2>
+            
+            <div id="history-filters" class="history-controls" style="display: none;">
+                <div class="control-group">
+                    <label>Chọn ngày:</label>
+                    <input type="date" id="history-date-picker">
+                </div>
+                <div class="control-group">
+                    <label>Chọn CLB:</label>
+                    <select id="history-club-select">
+                        <option value="Nguyễn Huệ">CLB Nguyễn Huệ</option>
+                        <option value="Lê Hữu Trác">CLB Lê Hữu Trác</option>
+                        <option value="Nội Trú">CLB Nội Trú</option>
+                        <option value="Y Ngông">CLB Y Ngông</option>
+                    </select>
+                </div>
+                <button onclick="window.loadHistoryData()" class="btn-refresh"><i class="fas fa-search"></i> Xem Dữ Liệu</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Thông tin</th>
+                            <th>Trạng Thái</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list">
+                        </tbody>
+                </table>
+            </div>
+            <p id="history-msg" style="text-align: center; color: #666; margin-top: 20px;">Vui lòng chọn ngày để xem.</p>
         </section>
 
         <section id="news" style="display: none;">
@@ -188,53 +225,37 @@
                     <i class="fas fa-pen"></i> Đăng bài mới
                 </button>
             </div>
-
             <div id="post-creator" style="display: none;">
                 <h3>Soạn thảo bài viết</h3>
                 <input type="text" id="post-title" placeholder="Tiêu đề bài viết..." class="post-input">
                 <div class="rich-editor-toolbar">
-                    <button type="button" onclick="window.formatDoc('bold')" title="In đậm"><b>B</b></button>
-                    <button type="button" onclick="window.formatDoc('italic')" title="In nghiêng"><i>I</i></button>
-                    <button type="button" onclick="window.formatDoc('underline')" title="Gạch chân"><u>U</u></button>
-                    <label for="media-upload" class="btn-tool-media" title="Thêm Ảnh/Video">
-                        <i class="fas fa-photo-video"></i> Thêm Media
-                    </label>
+                    <button type="button" onclick="window.formatDoc('bold')"><b>B</b></button>
+                    <button type="button" onclick="window.formatDoc('italic')"><i>I</i></button>
+                    <button type="button" onclick="window.formatDoc('underline')"><u>U</u></button>
+                    <label for="media-upload" class="btn-tool-media"><i class="fas fa-photo-video"></i> Thêm Media</label>
                     <input type="file" id="media-upload" accept="image/*, video/*" style="display: none;" onchange="window.handleMediaUpload(this)">
                 </div>
                 <div id="post-content" class="post-editor" contenteditable="true"></div>
                 <button onclick="window.publishPost()" class="btn-submit">Đăng bài</button>
             </div>
-
-            <div id="news-list-view">
-                <div id="news-feed"></div>
-            </div>
-
+            <div id="news-list-view"><div id="news-feed"></div></div>
             <div id="news-detail-view" style="display: none;">
-                <button onclick="window.backToNewsList()" class="btn-back-custom">
-                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
-                </button>
-                
+                <button onclick="window.backToNewsList()" class="btn-back-custom"><i class="fas fa-arrow-left"></i> Quay lại danh sách</button>
                 <div class="article-container">
-                    <h1 id="detail-title">Tiêu đề bài viết</h1>
-                    <small id="detail-date" style="color: #666;">Ngày đăng...</small>
-                    <hr>
+                    <h1 id="detail-title">Tiêu đề</h1> <small id="detail-date" style="color: #666;">Ngày đăng</small> <hr>
                     <div id="detail-content" class="article-content"></div>
                 </div>
-
                 <div class="comment-section">
                     <h3>Bình luận</h3>
                     <div id="comment-list"></div>
-                    
                     <div class="comment-input-wrapper">
                         <div class="comment-toolbar">
-                            <button type="button" onclick="window.formatComment('bold')" title="In đậm"><b>B</b></button>
-                            <button type="button" onclick="window.formatComment('italic')" title="In nghiêng"><i>I</i></button>
-                            <button type="button" onclick="window.formatComment('underline')" title="Gạch chân"><u>U</u></button>
+                            <button onclick="window.formatComment('bold')"><b>B</b></button>
+                            <button onclick="window.formatComment('italic')"><i>I</i></button>
+                            <button onclick="window.formatComment('underline')"><u>U</u></button>
                         </div>
-                        <div id="comment-input-rich" contenteditable="true" placeholder="Viết bình luận của bạn..."></div>
-                        <button onclick="window.submitComment()" class="btn-send-comment">
-                            <i class="fas fa-paper-plane"></i> Gửi bình luận
-                        </button>
+                        <div id="comment-input-rich" contenteditable="true" placeholder="Viết bình luận..."></div>
+                        <button onclick="window.submitComment()" class="btn-send-comment"><i class="fas fa-paper-plane"></i> Gửi</button>
                     </div>
                 </div>
             </div>
@@ -249,47 +270,47 @@
                         <input type="file" id="profile-avatar-upload" style="display: none;" accept="image/*" onchange="window.previewProfileAvatar(this)">
                     </div>
                     <h2>Hồ Sơ Cá Nhân</h2>
-                    <p style="color: #666; font-size: 0.9rem;">(Bạn có thể tự cập nhật thông tin tại đây)</p>
                 </div>
-                
                 <form id="profile-form">
-                    <div class="form-group">
-                        <label>Họ và tên:</label>
-                        <input type="text" id="profile-name" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label>Số điện thoại (Cố định - Không thể sửa):</label>
-                        <input type="text" id="profile-phone" disabled style="background-color: #e9ecef; cursor: not-allowed;">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày sinh:</label>
-                        <input type="date" id="profile-dob" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label>Câu lạc bộ (Cố định):</label>
-                        <input type="text" id="profile-club" disabled style="background-color: #e9ecef; cursor: not-allowed;">
-                    </div>
-                    
+                    <div class="form-group"><label>Họ và tên:</label><input type="text" id="profile-name" disabled></div>
+                    <div class="form-group"><label>Số điện thoại:</label><input type="text" id="profile-phone" disabled style="background-color: #e9ecef;"></div>
+                    <div class="form-group"><label>Ngày sinh:</label><input type="date" id="profile-dob" disabled></div>
+                    <div class="form-group"><label>Câu lạc bộ:</label><input type="text" id="profile-club" disabled style="background-color: #e9ecef;"></div>
                     <div class="profile-actions">
-                        <button type="button" id="btn-edit-profile" class="btn-edit" onclick="window.enableEditProfile()">
-                            <i class="fas fa-pen"></i> Chỉnh sửa thông tin
-                        </button>
-                        <button type="button" id="btn-save-profile" class="btn-save" style="display: none;" onclick="window.saveProfile()">
-                            <i class="fas fa-save"></i> Lưu thay đổi
-                        </button>
+                        <button type="button" id="btn-edit-profile" class="btn-edit" onclick="window.enableEditProfile()"><i class="fas fa-pen"></i> Chỉnh sửa</button>
+                        <button type="button" id="btn-save-profile" class="btn-save" style="display: none;" onclick="window.saveProfile()"><i class="fas fa-save"></i> Lưu thay đổi</button>
                     </div>
                 </form>
             </div>
         </section>
+
+        <div id="modal-edit-student" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="window.closeEditModal()">&times;</span>
+                <h3>Chỉnh Sửa Thông Tin</h3>
+                <form id="form-edit-student" onsubmit="window.saveStudentEdits(event)">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group"><label>Họ tên:</label><input type="text" id="edit-name" required></div>
+                    <div class="form-group"><label>SĐT:</label><input type="number" id="edit-phone" required></div>
+                    <div class="form-group"><label>Ngày sinh:</label><input type="date" id="edit-dob" required></div>
+                    <div class="form-group">
+                        <label>Ảnh:</label>
+                        <div style="text-align: center;"><img id="edit-img-preview" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"></div>
+                        <input type="file" id="edit-img-upload" accept="image/*" onchange="window.previewEditAvatar(this)">
+                    </div>
+                    <button type="submit" class="btn-submit">Lưu Thay Đổi</button>
+                </form>
+            </div>
+        </div>
 
     </main>
 
     <footer>
         <p>Liên hệ Ban Chủ Nhiệm</p>
         <p><i class="fas fa-phone-alt"></i> / Zalo: 0922904904</p>
-        <p>&copy; Vovinam Lộc Shadow - Tinh thần Việt võ đạo</p>
+        <p>&copy; Vovinam Lộc Shadow</p>
     </footer>
 
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js?v=FIX_FINAL"></script>
 </body>
 </html>
