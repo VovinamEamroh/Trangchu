@@ -179,3 +179,57 @@ input:not(:disabled) { background-color: #fff; border: 1px solid var(--vovinam-b
 .btn-user-menu:hover { background: rgba(255,255,255,0.2); }
 .user-dropdown-content { right: 0; left: auto; min-width: 200px; }
 
+/* --- TRANG TRÍ NÚT SỬA / XÓA (ĐẸP & CHUYÊN NGHIỆP) --- */
+
+.admin-actions {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd; /* Đường kẻ mờ ngăn cách */
+    display: flex;
+    gap: 12px; /* Khoảng cách giữa 2 nút */
+    justify-content: flex-start; /* Căn trái */
+}
+
+/* Kiểu dáng chung cho cả 2 nút */
+.btn-edit-post, .btn-delete-post {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px; /* Bo góc nhẹ */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Khoảng cách giữa icon và chữ */
+    transition: all 0.2s ease; /* Hiệu ứng mượt */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 1. Nút Sửa (Màu Vàng Vovinam) */
+.btn-edit-post {
+    background-color: var(--vovinam-yellow); 
+    color: #333; /* Chữ màu tối cho dễ đọc */
+}
+
+.btn-edit-post:hover {
+    background-color: #ffca28; /* Đậm hơn khi di chuột */
+    transform: translateY(-2px); /* Bay lên nhẹ */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* 2. Nút Xóa (Màu Đỏ Cảnh Báo) */
+.btn-delete-post {
+    background-color: #ff4444;
+    color: white; /* Chữ trắng */
+}
+
+.btn-delete-post:hover {
+    background-color: #cc0000; /* Đậm hơn khi di chuột */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 68, 68, 0.3);
+}
+
+/* Chỉnh lại icon bên trong nút cho cân đối */
+.btn-edit-post i, .btn-delete-post i {
+    font-size: 1rem;
+}
