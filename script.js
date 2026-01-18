@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// --- 2. CẤU HÌNH KẾT NỐI ---
+// --- 2. CẤU HÌNH KẾT NỐI (Giữ nguyên) ---
 const firebaseConfig = {
     apiKey: "AIzaSyDn0yqXve0rYSEKFommFKV8J-McHEU-Nh4",
     authDomain: "vovinam-web-4eb57.firebaseapp.com",
@@ -94,13 +94,13 @@ window.openEditModal = function(firebaseId) {
     const student = students.find(s => s.firebaseId === firebaseId);
     if (!student) return;
 
-    // Đổ dữ liệu vào form modal
+    // Đổ dữ liệu cũ vào form modal
     document.getElementById('edit-id').value = firebaseId;
     document.getElementById('edit-name').value = student.name;
     document.getElementById('edit-phone').value = student.phone;
     document.getElementById('edit-dob').value = student.dob;
     document.getElementById('edit-img-preview').src = student.img;
-    document.getElementById('edit-img-upload').value = ""; // Reset file input
+    document.getElementById('edit-img-upload').value = ""; // Reset input file
 
     // Hiện modal
     document.getElementById('modal-edit-student').style.display = 'block';
@@ -120,6 +120,8 @@ window.previewEditAvatar = function(input) {
 
 window.saveStudentEdits = async function(e) {
     e.preventDefault();
+    if(!isAdmin()) return;
+
     const id = document.getElementById('edit-id').value;
     const name = document.getElementById('edit-name').value;
     const phone = document.getElementById('edit-phone').value;
@@ -127,14 +129,15 @@ window.saveStudentEdits = async function(e) {
     const imgInput = document.getElementById('edit-img-upload');
     let imgUrl = document.getElementById('edit-img-preview').src;
 
-    // Nếu có chọn ảnh mới thì convert
+    // Nếu người dùng chọn ảnh mới
     if (imgInput.files && imgInput.files[0]) {
         if (imgInput.files[0].size > 500 * 1024) { alert("Ảnh quá lớn (>500KB)!"); return; }
         imgUrl = await readFileAsBase64(imgInput.files[0]);
     }
 
     try {
-        await updateDoc(doc(db, COLL_STUDENTS, id), {
+        const docRef = doc(db, COLL_STUDENTS, id);
+        await updateDoc(docRef, {
             name: name,
             phone: phone,
             dob: dob,
@@ -147,7 +150,7 @@ window.saveStudentEdits = async function(e) {
     }
 }
 
-// --- 7. RENDER BẢNG (ĐÃ THÊM NÚT SỬA) ---
+// --- 7. HIỂN THỊ DANH SÁCH (CẬP NHẬT NÚT SỬA) ---
 function renderAttendanceTable() {
     const tbody = document.getElementById('attendance-list');
     tbody.innerHTML = "";
@@ -163,7 +166,7 @@ function renderAttendanceTable() {
             ? `<label class="switch"><input type="checkbox" id="status-${student.firebaseId}" ${student.isPresent ? 'checked' : ''}><span class="slider"></span></label>`
             : (student.isPresent ? `<span style="color:green;font-weight:bold;">Có mặt</span>` : `<span style="color:red;font-weight:bold;">Vắng</span>`);
         
-        // Thêm nút Sửa cạnh nút gạt (Chỉ Admin thấy)
+        // NÚT SỬA (CHỈ HIỆN KHI LÀ ADMIN)
         if (isAdmin()) {
             statusHTML += `
                 <button type="button" class="btn-edit-student" title="Sửa thông tin" onclick="openEditModal('${student.firebaseId}')">
@@ -184,6 +187,7 @@ function renderAttendanceTable() {
         const rowStyle = isMe ? 'background-color: #e3f2fd; border-left: 5px solid #0055A4;' : ''; 
         let dateInfo = student.lastAttendanceDate ? `<br><small style="color:blue">Cập nhật: ${student.lastAttendanceDate}</small>` : '';
 
+        // Hiển thị thông tin bảo mật
         let infoDisplay = "";
         if (isAdmin()) {
             infoDisplay = `<br><small><i class="fas fa-phone"></i> ${student.phone}</small> | <small><i class="fas fa-birthday-cake"></i> ${student.dob}</small>`;
@@ -205,48 +209,7 @@ function renderAttendanceTable() {
     });
 }
 
-// --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
-document.getElementById('register-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const name = document.getElementById('reg-name').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
-    const dob = document.getElementById('reg-dob').value;
-    const club = document.getElementById('reg-club').value;
-    if (!club) { alert("Vui lòng chọn Câu Lạc Bộ!"); return; }
-    if (students.some(s => s.phone === phone && s.club === club)) { alert(`Số điện thoại ${phone} đã đăng ký tại CLB ${club} rồi!`); return; }
-    const newStudent = { id: Date.now(), club: club, name: name, phone: phone, dob: dob, img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", isPresent: false, note: "", lastAttendanceDate: "" };
-    try { await addDoc(collection(db, COLL_STUDENTS), newStudent); alert("Đăng ký thành công! Vui lòng đăng nhập."); document.getElementById('register-form').reset(); window.showSection('login'); } catch (error) { alert("Lỗi kết nối: " + error.message); }
-});
-
-document.getElementById('login-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const name = document.getElementById('login-name').value.trim();
-    const phone = document.getElementById('login-phone').value.trim();
-    if (phone === '000' && name.toLowerCase() === 'admin') { currentUser = { name: "Huấn Luyện Viên", phone: "000", clubs: ["ALL"], role: "admin" }; loginSuccess(); return; }
-    const matchedRecords = students.filter(s => s.phone === phone && s.name.toLowerCase() === name.toLowerCase());
-    if (matchedRecords.length > 0) { const myClubs = matchedRecords.map(s => s.club); currentUser = { ...matchedRecords[0], clubs: myClubs, role: "student" }; loginSuccess(); } else { alert("Thông tin không đúng hoặc chưa đăng ký!"); }
-});
-
-function loginSuccess() { localStorage.setItem('vovinamCurrentUser', JSON.stringify(currentUser)); alert(`Xin chào ${currentUser.name}!`); checkLoginStatus(); window.showSection('home'); }
-function checkLoginStatus() {
-    const authActions = document.getElementById('auth-actions'); const userDisplay = document.getElementById('user-display'); const userNameSpan = document.getElementById('user-name-display'); const clubLinks = document.querySelectorAll('.dropdown-content li');
-    if (currentUser) {
-        authActions.style.display = 'none'; userDisplay.style.display = 'block'; userNameSpan.innerText = isAdmin() ? `HLV: ${currentUser.name}` : `Môn sinh: ${currentUser.name}`;
-        clubLinks.forEach(li => { const onclickText = li.getAttribute('onclick'); if (onclickText) { const clubName = onclickText.match(/'([^']+)'/)[1]; li.style.display = (isAdmin() || (currentUser.clubs && currentUser.clubs.includes(clubName))) ? 'block' : 'none'; } });
-    } else { authActions.style.display = 'flex'; userDisplay.style.display = 'none'; clubLinks.forEach(li => li.style.display = 'block'); }
-    renderNews();
-}
-window.logout = function() { currentUser = null; localStorage.removeItem('vovinamCurrentUser'); checkLoginStatus(); window.showSection('home'); }
-window.openClubManager = function(clubName) {
-    if (!currentUser) { alert("Vui lòng đăng nhập!"); window.showSection('login'); return; }
-    const isMember = currentUser.clubs && currentUser.clubs.includes(clubName);
-    if (!isAdmin() && !isMember) { alert(`Bạn không có tên trong danh sách CLB ${clubName}!`); return; }
-    currentClub = clubName; document.getElementById('current-club-title').innerText = `Danh sách: ${clubName}`; const btnAdd = document.getElementById('btn-add-student'); if (btnAdd) btnAdd.style.display = isAdmin() ? 'block' : 'none'; window.showSection('club-manager'); window.switchTab('attendance');
-}
-window.switchTab = function(tabId) {
-    document.getElementById('tab-attendance').style.display = 'none'; document.getElementById('tab-add-student').style.display = 'none'; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.getElementById(`tab-${tabId}`).style.display = 'block'; const actionDiv = document.getElementById('attendance-actions');
-    if(tabId === 'attendance') { document.querySelector('.tab-btn').classList.add('active'); renderAttendanceTable(); if(actionDiv) actionDiv.style.display = isAdmin() ? 'block' : 'none'; } else { const btnAdd = document.getElementById('btn-add-student'); if(btnAdd) btnAdd.classList.add('active'); if(actionDiv) actionDiv.style.display = 'none'; }
-}
+// --- CÁC HÀM CŨ GIỮ NGUYÊN ---
 window.saveDailyAttendance = async function() {
     if(!isAdmin()) return;
     if(!confirm("Lưu điểm danh hôm nay?")) return;
@@ -276,6 +239,39 @@ document.getElementById('add-student-form').addEventListener('submit', async fun
     const newStudent = { id: Date.now(), club: currentClub, name: name, phone: phone, dob: dob, img: imgUrl, isPresent: false, note: "", lastAttendanceDate: "" };
     await addDoc(collection(db, COLL_STUDENTS), newStudent); alert(`Đã thêm ${name}!`); document.getElementById('add-student-form').reset(); window.switchTab('attendance');
 });
+document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault(); const name = document.getElementById('reg-name').value.trim(); const phone = document.getElementById('reg-phone').value.trim(); const dob = document.getElementById('reg-dob').value; const club = document.getElementById('reg-club').value;
+    if (!club) { alert("Vui lòng chọn Câu Lạc Bộ!"); return; }
+    if (students.some(s => s.phone === phone && s.club === club)) { alert(`Số điện thoại ${phone} đã đăng ký tại CLB ${club} rồi!`); return; }
+    const newStudent = { id: Date.now(), club: club, name: name, phone: phone, dob: dob, img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", isPresent: false, note: "", lastAttendanceDate: "" };
+    try { await addDoc(collection(db, COLL_STUDENTS), newStudent); alert("Đăng ký thành công! Vui lòng đăng nhập."); document.getElementById('register-form').reset(); window.showSection('login'); } catch (error) { alert("Lỗi kết nối: " + error.message); }
+});
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault(); const name = document.getElementById('login-name').value.trim(); const phone = document.getElementById('login-phone').value.trim();
+    if (phone === '000' && name.toLowerCase() === 'admin') { currentUser = { name: "Huấn Luyện Viên", phone: "000", clubs: ["ALL"], role: "admin" }; loginSuccess(); return; }
+    const matchedRecords = students.filter(s => s.phone === phone && s.name.toLowerCase() === name.toLowerCase());
+    if (matchedRecords.length > 0) { const myClubs = matchedRecords.map(s => s.club); currentUser = { ...matchedRecords[0], clubs: myClubs, role: "student" }; loginSuccess(); } else { alert("Thông tin không đúng hoặc chưa đăng ký!"); }
+});
+function loginSuccess() { localStorage.setItem('vovinamCurrentUser', JSON.stringify(currentUser)); alert(`Xin chào ${currentUser.name}!`); checkLoginStatus(); window.showSection('home'); }
+function checkLoginStatus() {
+    const authActions = document.getElementById('auth-actions'); const userDisplay = document.getElementById('user-display'); const userNameSpan = document.getElementById('user-name-display'); const clubLinks = document.querySelectorAll('.dropdown-content li');
+    if (currentUser) {
+        authActions.style.display = 'none'; userDisplay.style.display = 'block'; userNameSpan.innerText = isAdmin() ? `HLV: ${currentUser.name}` : `Môn sinh: ${currentUser.name}`;
+        clubLinks.forEach(li => { const onclickText = li.getAttribute('onclick'); if (onclickText) { const clubName = onclickText.match(/'([^']+)'/)[1]; li.style.display = (isAdmin() || (currentUser.clubs && currentUser.clubs.includes(clubName))) ? 'block' : 'none'; } });
+    } else { authActions.style.display = 'flex'; userDisplay.style.display = 'none'; clubLinks.forEach(li => li.style.display = 'block'); }
+    renderNews();
+}
+window.logout = function() { currentUser = null; localStorage.removeItem('vovinamCurrentUser'); checkLoginStatus(); window.showSection('home'); }
+window.openClubManager = function(clubName) {
+    if (!currentUser) { alert("Vui lòng đăng nhập!"); window.showSection('login'); return; }
+    const isMember = currentUser.clubs && currentUser.clubs.includes(clubName);
+    if (!isAdmin() && !isMember) { alert(`Bạn không có tên trong danh sách CLB ${clubName}!`); return; }
+    currentClub = clubName; document.getElementById('current-club-title').innerText = `Danh sách: ${clubName}`; const btnAdd = document.getElementById('btn-add-student'); if (btnAdd) btnAdd.style.display = isAdmin() ? 'block' : 'none'; window.showSection('club-manager'); window.switchTab('attendance');
+}
+window.switchTab = function(tabId) {
+    document.getElementById('tab-attendance').style.display = 'none'; document.getElementById('tab-add-student').style.display = 'none'; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.getElementById(`tab-${tabId}`).style.display = 'block'; const actionDiv = document.getElementById('attendance-actions');
+    if(tabId === 'attendance') { document.querySelector('.tab-btn').classList.add('active'); renderAttendanceTable(); if(actionDiv) actionDiv.style.display = isAdmin() ? 'block' : 'none'; } else { const btnAdd = document.getElementById('btn-add-student'); if(btnAdd) btnAdd.classList.add('active'); if(actionDiv) actionDiv.style.display = 'none'; }
+}
 window.showProfile = function() { if (!currentUser) return; window.showSection('profile'); document.getElementById('profile-name').value = currentUser.name; document.getElementById('profile-phone').value = currentUser.phone; document.getElementById('profile-dob').value = currentUser.dob || ""; document.getElementById('profile-club').value = (currentUser.clubs || [currentUser.club]).join(", "); document.getElementById('profile-img-preview').src = currentUser.img || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; window.disableEditMode(); }
 window.enableEditProfile = function() { document.getElementById('profile-name').disabled = false; document.getElementById('profile-dob').disabled = false; document.getElementById('btn-edit-profile').style.display = 'none'; document.getElementById('btn-save-profile').style.display = 'block'; }
 window.disableEditMode = function() { document.getElementById('profile-name').disabled = true; document.getElementById('profile-phone').disabled = true; document.getElementById('profile-dob').disabled = true; document.getElementById('btn-edit-profile').style.display = 'block'; document.getElementById('btn-save-profile').style.display = 'none'; }
