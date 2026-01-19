@@ -398,3 +398,138 @@ input:not(:disabled) { background-color: #fff; border: 1px solid var(--vovinam-b
     color: #555;
     font-style: italic;
 }
+
+/* --- THÊM MỚI: BANNER SLIDER --- */
+.banner-slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    aspect-ratio: 16/6; /* Tỷ lệ khung hình đẹp */
+}
+
+.banner-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
+    height: 100%;
+}
+
+.slide {
+    min-width: 100%;
+    position: relative;
+    height: 100%;
+}
+
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.banner-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    padding: 40px 20px 20px 20px;
+    text-align: center;
+}
+
+.banner-content h2 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+    color: var(--vovinam-yellow);
+    text-shadow: 2px 2px 4px black;
+}
+
+/* Nút điều hướng */
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+.slider-btn:hover { background-color: rgba(0,0,0,0.8); }
+.prev { left: 10px; }
+.next { right: 10px; }
+
+/* Dấu chấm */
+.slider-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+}
+.dot {
+    width: 10px;
+    height: 10px;
+    background-color: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    cursor: pointer;
+}
+.dot.active { background-color: var(--vovinam-yellow); }
+
+/* Nút cài đặt Banner (Admin) */
+.btn-config-banner {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.btn-config-banner:hover { background: var(--vovinam-blue); }
+
+/* Banner Manager List */
+.banner-item-admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+.banner-item-admin img {
+    width: 80px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-right: 10px;
+}
+.btn-delete-banner {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .banner-slider-container { aspect-ratio: 16/9; } /* Mobile cao hơn chút */
+    .banner-content h2 { font-size: 1.2rem; }
+    .banner-content p { font-size: 0.9rem; }
+}
