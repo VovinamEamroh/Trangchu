@@ -310,3 +310,104 @@ input:not(:disabled) { background-color: #fff; border: 1px solid var(--vovinam-b
     height: 18px;
     cursor: pointer;
 }
+
+/* --- MOBILE RESPONSIVE (Dành cho điện thoại) --- */
+
+/* Ẩn nút menu trên máy tính */
+.mobile-menu-btn { display: none; }
+.mobile-header-top { display: contents; }
+
+@media (max-width: 768px) {
+    /* 1. HEADER & MENU */
+    .header-content { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        padding: 10px 0;
+    }
+
+    .mobile-header-top {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+        padding-bottom: 10px;
+    }
+
+    .mobile-menu-btn { 
+        display: block; 
+        background: none; 
+        border: 2px solid white; 
+        color: white; 
+        font-size: 1.5rem; 
+        padding: 5px 10px; 
+        border-radius: 5px; 
+        cursor: pointer;
+    }
+
+    /* Ẩn menu mặc định trên mobile */
+    nav#main-nav { 
+        display: none; 
+        width: 100%; 
+        background-color: rgba(0, 85, 164, 0.95); /* Màu xanh đậm hơn */
+        padding: 10px 0;
+    }
+
+    /* Khi có class 'active' thì hiện ra */
+    nav#main-nav.active { display: block; animation: slideDown 0.3s; }
+
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    nav ul { flex-direction: column; width: 100%; }
+    nav ul li { margin: 10px 0; width: 100%; text-align: center; }
+    nav ul li a { display: block; padding: 10px; font-size: 1.1rem; }
+
+    /* Dropdown trên mobile */
+    .dropdown-content { 
+        position: static; 
+        box-shadow: none; 
+        border-top: none; 
+        background-color: #004494; 
+    }
+    .dropdown-content li a { color: white !important; }
+
+    /* Auth & User Info */
+    .auth-buttons, .user-info { 
+        width: 100%; 
+        justify-content: center; 
+        margin: 10px 0 0 0; 
+        border-top: 1px solid rgba(255,255,255,0.3);
+        padding-top: 10px;
+    }
+    
+    .user-dropdown-content { right: 50%; transform: translateX(50%); }
+
+    /* 2. MAIN CONTENT */
+    main { padding: 10px; }
+    
+    /* Banner */
+    .banner { padding: 40px 10px; }
+    .banner h2 { font-size: 1.5rem; }
+
+    /* 3. BẢNG BIỂU (Cho phép cuộn ngang) */
+    .table-responsive { 
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch; 
+        border: 1px solid #ddd;
+    }
+    
+    table { min-width: 600px; } /* Ép bảng rộng ra để cuộn */
+    
+    /* 4. TIN TỨC */
+    .news-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .news-filters { flex-direction: column; align-items: flex-start; }
+    .btn-create-news { width: 100%; justify-content: center; }
+    .btn-send-comment { width: 100%; justify-content: center; float: none; }
+
+    /* 5. FORM & MODAL */
+    .modal-content { width: 95%; margin: 20% auto; }
+    .auth-container { margin: 20px auto; padding: 20px; }
+    
+    /* 6. PROFILE */
+    .profile-actions { flex-direction: column; }
+    .btn-edit, .btn-save { width: 100%; margin-bottom: 10px; }
+}
