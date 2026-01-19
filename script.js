@@ -484,5 +484,21 @@ setTimeout(() => {
     });
 }, 1000);
 
+// --- MOBILE MENU LOGIC ---
+window.toggleMobileMenu = function() {
+    const nav = document.getElementById('main-nav');
+    nav.classList.toggle('active');
+}
+
+// Tự động đóng menu khi bấm vào link (để đỡ vướng)
+document.querySelectorAll('.main-menu li a').forEach(link => {
+    link.addEventListener('click', () => {
+        const nav = document.getElementById('main-nav');
+        if (window.innerWidth <= 768) { // Chỉ đóng trên mobile
+            nav.classList.remove('active');
+        }
+    });
+});
+
 window.checkLoginStatus();
 console.log("✅ SYSTEM UPDATE 11.0: TIME DISPLAY ADDED");
