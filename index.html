@@ -11,12 +11,17 @@
 
     <header>
         <div class="header-content">
-            <div class="logo-container">
-                <img src="Logo_VVF.png" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Vovinam_Logo.svg/1200px-Vovinam_Logo.svg.png'" alt="Logo" class="logo">
-                <h1 class="hide-on-mobile">Vovinam Lộc Shadow</h1>
+            <div class="mobile-header-top">
+                <div class="logo-container">
+                    <img src="Logo_VVF.png" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Vovinam_Logo.svg/1200px-Vovinam_Logo.svg.png'" alt="Logo" class="logo">
+                    <h1 class="hide-on-mobile">Vovinam Lộc Shadow</h1>
+                </div>
+                <button class="mobile-menu-btn" onclick="window.toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
             
-            <nav>
+            <nav id="main-nav">
                 <ul class="main-menu">
                     <li onclick="window.showSection('home')"><a href="#">Trang chủ</a></li>
                     <li id="menu-history" style="display: none;" onclick="window.openHistorySection()">
@@ -338,7 +343,7 @@
     <footer>
         <p>Liên hệ Ban Chủ Nhiệm</p>
         <p><i class="fas fa-phone-alt"></i> / Zalo: 0922904904</p>
-        <p>&copy; Vovinam Lộc Shadow - Tinh thần Việt Võ Đạo</p>
+        <p>&copy; Vovinam Lộc Shadow</p>
     </footer>
 
     <script type="module" src="script.js?v=9.0"></script>
