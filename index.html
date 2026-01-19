@@ -12,7 +12,7 @@
     <header>
         <div class="header-content">
             <div class="mobile-header-top">
-                <div class="logo-container">
+                <div class="logo-container" onclick="window.showSection('home')" title="Về trang chủ">
                     <img src="Logo_VVF.png" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Vovinam_Logo.svg/1200px-Vovinam_Logo.svg.png'" alt="Logo" class="logo">
                     <h1 class="hide-on-mobile">Vovinam Ea M'droh</h1>
                 </div>
@@ -63,10 +63,26 @@
 
     <main>
         <section id="home" class="active-section">
-            <div class="banner">
-                <h2>TINH HOA VÕ THUẬT VIỆT NAM</h2>
-                <p>Rèn luyện thân thể - Tu dưỡng tinh thần</p>
+            <div class="banner-slider-container">
+                <button id="btn-config-banner" class="btn-config-banner" onclick="window.openBannerManager()" style="display: none;">
+                    <i class="fas fa-cog"></i> Cài đặt Banner
+                </button>
+
+                <div id="banner-wrapper" class="banner-wrapper">
+                    <div class="slide active">
+                        <img src="https://vovinam.vn/wp-content/uploads/2019/04/vovinam-banner.jpg" alt="Default Banner">
+                        <div class="banner-content">
+                            <h2>TINH HOA VÕ THUẬT VIỆT NAM</h2>
+                            <p>Rèn luyện thân thể - Tu dưỡng tinh thần</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="slider-btn prev" onclick="window.moveSlide(-1)">&#10094;</button>
+                <button class="slider-btn next" onclick="window.moveSlide(1)">&#10095;</button>
+                <div id="slider-dots" class="slider-dots"></div>
             </div>
+
             <div class="club-slider">
                 <h3>Các Câu Lạc Bộ Trực Thuộc</h3>
                 <div class="slider-container">
@@ -170,7 +186,7 @@
                         </select>
                     </div>
 
-                    <div class="form-group"><label>Ảnh đại diện (Dưới 1MB):</label><input type="file" id="student-img" accept="image/*"></div>
+                    <div class="form-group"><label>Ảnh đại diện (Dưới 5MB):</label><input type="file" id="student-img" accept="image/*"></div>
                     <button type="submit" class="btn-submit">Thêm vào danh sách</button>
                 </form>
             </div>
@@ -370,12 +386,35 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Cập nhật Ảnh (Dưới 1MB):</label>
+                        <label>Cập nhật Ảnh (Dưới 5MB):</label>
                         <div style="text-align: center;"><img id="edit-img-preview" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"></div>
                         <input type="file" id="edit-img-upload" accept="image/*" onchange="window.previewEditAvatar(this)">
                     </div>
                     <button type="submit" class="btn-submit">Lưu Thay Đổi</button>
                 </form>
+            </div>
+        </div>
+
+        <div id="modal-banner-manager" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="window.closeBannerManager()">&times;</span>
+                <h3>Cài đặt Banner Trang chủ</h3>
+                <div class="banner-upload-form" style="background:#f4f4f4; padding:15px; border-radius:5px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label>Tải ảnh mới (Ưu tiên ảnh ngang 1200x400 - Dưới 5MB):</label>
+                        <input type="file" id="new-banner-img" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Tiêu đề chính:</label>
+                        <input type="text" id="new-banner-title" placeholder="VD: Tinh hoa võ thuật...">
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả ngắn:</label>
+                        <input type="text" id="new-banner-desc" placeholder="VD: Rèn luyện thân thể...">
+                    </div>
+                    <button class="btn-submit" onclick="window.addBanner()">Thêm Banner</button>
+                </div>
+                <div class="current-banners-list" id="banner-list-admin" style="max-height:300px; overflow-y:auto;"></div>
             </div>
         </div>
 
@@ -387,6 +426,6 @@
         <p>&copy; Vovinam Ea M'droh</p>
     </footer>
 
-    <script type="module" src="script.js?v=13.0"></script>
+    <script type="module" src="script.js?v=16.0"></script>
 </body>
 </html>
