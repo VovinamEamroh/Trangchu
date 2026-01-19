@@ -1,89 +1,160 @@
-:root { --vovinam-blue: #0055A4; --vovinam-yellow: #FFD700; --text-color: #333; --bg-light: #f4f4f4; }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-body { background-color: var(--bg-light); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
-main { padding: 20px; max-width: 1200px; margin: 0 auto; flex: 1; width: 100%; }
-footer { background: #333; color: white; text-align: center; padding: 20px; margin-top: auto; width: 100%; }
+/* === GIAO DIỆN TIN TỨC (NEWS SYSTEM) === */
 
-/* HEADER */
-header { background-color: var(--vovinam-blue); color: white; padding: 10px 20px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-.header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: nowrap; }
-nav { flex: 1; text-align: center; }
-.logo { height: 50px; margin-right: 10px; border-radius: 50%; border: 2px solid white; background: white;}
-.logo-container { display: flex; align-items: center; }
-.logo-container h1 { font-size: 1.2rem; font-weight: bold; color: var(--vovinam-yellow); margin-right: 20px;}
-nav ul { list-style: none; display: flex; padding: 0; margin: 0; }
-nav ul li { margin: 0 10px; position: relative; }
-nav ul li a { text-decoration: none; color: white; font-weight: 500; transition: 0.3s; padding: 5px 10px; display: block;}
-nav ul li a:hover { color: var(--vovinam-yellow); }
-.dropdown-content { display: none; position: absolute; background-color: white; min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1; top: 100%; left: 0; border-top: 3px solid var(--vovinam-yellow); border-radius: 0 0 5px 5px;}
-.dropdown:hover .dropdown-content { display: block; }
-.dropdown-content li a { color: black; padding: 12px 16px; display: block; text-align: left; }
-.dropdown-content li a:hover { background-color: #ddd; color: var(--vovinam-blue); }
+/* 1. Thanh tiêu đề và Nút Đăng bài */
+.news-header { 
+    display: flex; 
+    justify-content: space-between; /* Đẩy tiêu đề sang trái, nút sang phải */
+    align-items: center; 
+    margin-bottom: 25px; 
+    border-bottom: 2px solid #eee; 
+    padding-bottom: 15px; 
+}
 
-/* AUTH */
-.auth-buttons { display: flex; gap: 10px; flex-shrink: 0; margin-left: 20px; }
-.btn-login, .btn-register, .btn-logout { padding: 5px 15px; border-radius: 4px; cursor: pointer; }
-.btn-login { background: transparent; border: 1px solid white; color: white; }
-.btn-register { background: var(--vovinam-yellow); border: none; color: #333; font-weight: bold; }
-.btn-logout { background: #ff4444; border: none; color: white; }
-.user-info { display: flex; align-items: center; font-weight: bold; color: var(--vovinam-yellow); flex-shrink: 0; margin-left: 20px; }
-.user-dropdown { position: relative; display: inline-block; }
-.btn-user-menu { background: transparent; border: 1px solid white; color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-.user-dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1; border-radius: 5px; }
-.user-dropdown:hover .user-dropdown-content { display: block; }
-.user-dropdown-content li a { color: #333; padding: 12px 16px; display: block; text-decoration: none; }
+.news-header h2 { 
+    margin: 0; 
+    color: var(--vovinam-blue); 
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
 
-/* LAYOUT & CARDS */
-.banner { background: linear-gradient(rgba(0,85,164,0.8), rgba(0,85,164,0.8)), url('https://vovinam.vn/wp-content/uploads/2019/04/vovinam-banner.jpg'); background-size: cover; color: white; text-align: center; padding: 80px 20px; border-radius: 10px; margin-bottom: 30px; }
-.slider-container { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-.club-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 220px; text-align: center; cursor: pointer; border-bottom: 5px solid var(--vovinam-blue); }
-.club-card:hover { transform: translateY(-5px); }
-.club-card i { font-size: 3rem; color: var(--vovinam-blue); margin-bottom: 15px; }
+.btn-create-news { 
+    background: linear-gradient(135deg, #FFD700, #FFC107); /* Màu vàng sáng */
+    color: #333; 
+    padding: 10px 25px; 
+    border: none; 
+    border-radius: 50px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+    transition: all 0.3s ease;
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+}
 
-/* FORMS */
-.auth-container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid var(--vovinam-blue); }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-.btn-submit { background: var(--vovinam-blue); color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; }
+.btn-create-news:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2); 
+    background: linear-gradient(135deg, #FFC107, #FFB300);
+}
 
-/* MANAGER */
-.club-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-.tab-btn { padding: 10px 20px; border: none; background: #ddd; cursor: pointer; border-radius: 5px 5px 0 0; }
-.tab-btn.active { background: var(--vovinam-blue); color: white; }
-table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
-th, td { padding: 12px; border: 1px solid #ddd; text-align: left; vertical-align: middle; }
-th { background-color: var(--vovinam-blue); color: white; }
-.student-avatar { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; }
-.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #2196F3; }
-input:checked + .slider:before { transform: translateX(26px); }
-.btn-save-attendance { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; }
+/* 2. Khung bài viết trong danh sách */
+.news-item { 
+    background: white; 
+    padding: 25px; 
+    margin-bottom: 25px; 
+    border-radius: 10px; 
+    box-shadow: 0 3px 6px rgba(0,0,0,0.05); 
+    border-left: 5px solid var(--vovinam-blue); /* Viền xanh bên trái */
+    transition: transform 0.2s; 
+    position: relative;
+}
 
-/* --- HISTORY PAGE (CSS MỚI) --- */
-.history-controls { display: flex; gap: 20px; align-items: flex-end; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.control-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-.btn-refresh { background-color: var(--vovinam-blue); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; height: 42px; font-weight: bold; }
-.status-badge { padding: 5px 10px; border-radius: 15px; font-weight: bold; font-size: 0.85rem; display: inline-block; }
-.status-present { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-.status-absent { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+.news-item:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 
-/* MODALS */
-.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-.modal-content { background-color: white; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 95%; max-width: 500px; border-radius: 10px; border-top: 5px solid var(--vovinam-blue); }
-.close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-.btn-edit-student { background-color: #FFC107; color: #333; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+.news-item h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 1.2rem;
+}
 
-/* NEWS & PROFILE (GIỮ NGUYÊN) */
-#post-creator { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd; }
-.post-editor { border: 1px solid #ccc; min-height: 250px; padding: 15px; border-radius: 4px; margin-bottom: 15px; background-color: #fff; overflow-y: auto; }
-.news-item { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid var(--vovinam-blue); }
-.profile-container { max-width: 600px; margin: 30px auto; border-top: 5px solid var(--vovinam-blue); }
-.profile-avatar-large { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 4px solid var(--vovinam-yellow); }
-.btn-upload-avatar { position: absolute; bottom: 0; right: 0; background: var(--vovinam-blue); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; }
-.profile-actions { display: flex; gap: 10px; margin-top: 20px; }
-.btn-edit { background: #6c757d; color: white; flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
-.btn-save { background: var(--vovinam-blue); color: white; flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
+.news-item small {
+    display: block;
+    color: #777;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+/* 3. XỬ LÝ ẢNH TRONG DANH SÁCH (THUMBNAIL) */
+.news-preview { 
+    color: #555; 
+    margin: 10px 0; 
+    max-height: 300px; /* Giới hạn chiều cao khung xem trước */
+    overflow: hidden; /* Ẩn phần thừa */
+    position: relative;
+    /* Tạo hiệu ứng mờ dần ở đáy nếu bài quá dài */
+    mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+}
+
+/* Quan trọng: Quy định kích thước ảnh trong danh sách tin */
+.news-preview img, .news-preview video { 
+    max-width: 100% !important; 
+    width: auto; /* Để ảnh không bị méo */
+    height: 200px; /* Chiều cao cố định cho ảnh thumbnail */
+    object-fit: cover; /* Cắt ảnh vừa khung mà không méo */
+    border-radius: 5px;
+    display: block;
+    margin: 10px 0;
+}
+
+/* 4. XỬ LÝ ẢNH TRONG BÀI VIẾT CHI TIẾT (FULL SIZE) */
+.article-content img, .article-content video { 
+    max-width: 100% !important; /* Ảnh to tối đa bằng màn hình */
+    height: auto !important; /* Chiều cao tự động theo tỷ lệ */
+    object-fit: contain; /* Hiển thị trọn vẹn ảnh */
+    display: block;
+    margin: 20px auto;
+    border-radius: 5px;
+}
+
+/* 5. Nút Xem & Bình luận */
+.read-more-btn { 
+    display: inline-block; 
+    background: var(--vovinam-blue); 
+    color: white; 
+    padding: 8px 20px; 
+    border-radius: 5px; 
+    text-decoration: none; 
+    font-weight: 600; 
+    margin-top: 15px; 
+    cursor: pointer; 
+    transition: background 0.3s;
+}
+
+.read-more-btn:hover { 
+    background: #003366; 
+}
+
+/* 6. Khu vực nút Admin (Sửa/Xóa) */
+.admin-actions { 
+    margin-top: 15px; 
+    padding-top: 15px; 
+    border-top: 1px dashed #ddd; 
+    display: flex; 
+    gap: 10px; 
+}
+
+.btn-edit-post, .btn-delete-post { 
+    border: none; 
+    padding: 8px 15px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 0.9rem; 
+    font-weight: bold; 
+    display: flex; 
+    align-items: center; 
+    gap: 5px;
+    color: #333;
+}
+
+/* Nút Sửa màu Vàng */
+.btn-edit-post { 
+    background-color: #FFD700; 
+}
+.btn-edit-post:hover { 
+    background-color: #FFC107; 
+}
+
+/* Nút Xóa màu Đỏ */
+.btn-delete-post { 
+    background-color: #ff4444; 
+    color: white; 
+}
+.btn-delete-post:hover { 
+    background-color: #cc0000; 
+}
