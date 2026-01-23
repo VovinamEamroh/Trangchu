@@ -81,7 +81,6 @@ window.isMonitor = function() {
     return window.students.some(s => s.phone === window.currentUser.phone && s.role === 'monitor');
 };
 
-// Quyền truy cập quản lý (Check theo CLB hiện tại)
 window.canManage = function() {
     if (window.isAdmin()) return true;
     const record = window.students.find(s => s.phone === window.currentUser.phone && s.club === window.currentClub);
@@ -91,7 +90,6 @@ window.canManage = function() {
     return false;
 };
 
-// Quyền sửa môn sinh (Cho lớp trưởng)
 window.canEditStudent = function(targetStudent) {
     if (window.isAdmin()) return true;
     const myRecord = window.students.find(s => s.phone === window.currentUser.phone && s.club === window.currentClub);
@@ -186,7 +184,6 @@ window.openClubManager = function(clubName) {
         } else { assistDiv.innerHTML = `(Chưa có Ban cán sự)`; }
     }
 
-    // Logic hiển thị nút bấm
     const myRecord = window.students.find(s => s.phone === window.currentUser.phone && s.club === window.currentClub);
     const isLocalAdmin = window.isAdmin() || (myRecord && myRecord.role === 'assistant');
     const isLocalMonitor = (myRecord && myRecord.role === 'monitor');
@@ -194,10 +191,12 @@ window.openClubManager = function(clubName) {
     const btnAdd = document.getElementById('btn-add-student');
     const bulkArea = document.querySelector('.bulk-upload-area');
     const toolbar = document.getElementById('attendance-toolbar');
+    const actionsDiv = document.getElementById('attendance-actions'); // Nút Lưu
     
     if (btnAdd) btnAdd.style.display = isLocalAdmin ? 'inline-block' : 'none';
     if (bulkArea) bulkArea.style.display = isLocalAdmin ? 'block' : 'none';
     if (toolbar) toolbar.style.display = (isLocalAdmin || isLocalMonitor) ? 'flex' : 'none';
+    if (actionsDiv) actionsDiv.style.display = (isLocalAdmin || isLocalMonitor) ? 'flex' : 'none'; // Chỉ người có quyền mới thấy nút Lưu
 
     const isNoiTru = (clubName === 'Nội Trú');
     const studentClassWrapper = document.getElementById('student-class-wrapper');
@@ -219,8 +218,9 @@ window.switchTab = function(tabId) {
     if(tabId === 'attendance') {
         document.getElementById('btn-tab-attendance').classList.add('active');
         window.renderAttendanceTable();
+        // Hiển thị nút lưu nếu có quyền (đã xử lý ở openClubManager nhưng check lại cho chắc)
         const actionDiv = document.getElementById('attendance-actions');
-        if(actionDiv) actionDiv.style.display = window.canManage() ? 'block' : 'none';
+        if(actionDiv) actionDiv.style.display = window.canManage() ? 'flex' : 'none';
     } else {
         const btnAdd = document.getElementById('btn-add-student');
         if(btnAdd) btnAdd.classList.add('active');
@@ -296,61 +296,31 @@ window.renderAttendanceTable = function() {
     });
 };
 
-window.exportToExcel = function() {
-    if(!window.canManage()) return;
-    if(window.isMonitor() && !window.isAdmin() && !window.isAssistant()) { 
-         alert("Lớp trưởng không có quyền xuất file!"); return; 
-    }
-
-    const beltFilter = document.getElementById('filter-belt-select').value;
-    const classFilter = document.getElementById('filter-class-select').value;
-    let list = window.students.filter(s => s.club === window.currentClub);
-    
-    if (window.currentClub === 'Nội Trú' && classFilter !== "ALL") { list = list.filter(s => s.classRoom === classFilter); }
-    if (beltFilter !== "ALL") {
-        list = list.filter(s => {
-            if (!s.belt) return false;
-            if (beltFilter === "Lam đai") return s.belt.includes("Lam") || s.belt.includes("Chuẩn");
-            if (beltFilter === "Hoàng đai") return s.belt.includes("Hoàng");
-            return s.belt === beltFilter;
-        });
-    }
-    if (window.isSortAsc) { list.sort((a, b) => getFirstName(a.name).localeCompare(getFirstName(b.name))); }
-    if (list.length === 0) { alert("Danh sách trống!"); return; }
-
-    let csvContent = "\uFEFF"; 
-    csvContent += "STT,Họ và Tên,Lớp,Số điện thoại,Ngày sinh,Cấp đai,Trạng thái hôm nay,Ghi chú\n";
-    list.forEach((s, index) => {
-        const status = s.isPresent ? "Có mặt" : "Vắng";
-        const row = [index + 1, `"${s.name}"`, `"${s.classRoom || ''}"`, `'${s.phone}`, `"${s.dob}"`, `"${s.belt || ''}"`, `"${status}"`, `"${s.note || ''}"`];
-        csvContent += row.join(",") + "\n";
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    const dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
-    link.setAttribute("download", `DS_${window.currentClub}_${dateStr}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
+// --- LOGIC LƯU GHI ĐÈ & THỐNG KÊ (MỚI) ---
 window.saveDailyAttendance = async function() {
     if(!window.canManage()) return;
-    if(!confirm("Lưu điểm danh hôm nay và ghi vào lịch sử?")) return;
+    if(!confirm("Lưu điểm danh hôm nay (Ghi đè dữ liệu cũ)?")) return;
 
-    const clubStudents = window.students.filter(s => s.club === window.currentClub);
+    // Lọc danh sách hiện tại (để đếm tổng số đúng với view đang nhìn)
+    let list = window.students.filter(s => s.club === window.currentClub);
+    const classFilter = document.getElementById('filter-class-select') ? document.getElementById('filter-class-select').value : "ALL";
+    if (window.currentClub === 'Nội Trú' && classFilter !== "ALL") {
+        list = list.filter(s => s.classRoom === classFilter);
+    }
+
     const d = new Date();
     const todayStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     const displayDateTime = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} ${todayStr}`;
 
     const batch = writeBatch(db);
     let historyRecords = [];
-    let count = 0;
+    let countPresent = 0;
+    // Tổng số môn sinh trong danh sách (đang hiển thị)
+    let countTotal = list.length; 
 
-    clubStudents.forEach(student => {
+    // Duyệt qua list đã lọc để lấy trạng thái checkbox
+    list.forEach(student => {
+        // Chỉ lưu và đếm những người mình có quyền sửa
         if (!window.canEditStudent(student)) return;
 
         const statusEl = document.getElementById(`status-${student.firebaseId}`);
@@ -361,160 +331,62 @@ window.saveDailyAttendance = async function() {
             const note = noteEl.value.trim();
             const docRef = doc(db, COLL_STUDENTS, student.firebaseId);
             batch.update(docRef, { isPresent, note, lastAttendanceDate: displayDateTime });
+            
             historyRecords.push({ studentId: student.firebaseId, name: student.name, phone: student.phone, status: isPresent ? "Có mặt" : "Vắng", note: note });
-            count++;
+            
+            if (isPresent) countPresent++;
         }
     });
 
-    if (count === 0) { alert("Không có dữ liệu thay đổi nào được lưu."); return; }
-
     try {
         await batch.commit();
+        
+        // LOGIC GHI ĐÈ: Dùng ID cố định theo ngày + clb (Bỏ timestamp)
         const safeDateId = todayStr.replace(/\//g, '-'); 
-        const logDocId = `${safeDateId}_${window.currentClub}_${Date.now()}`; 
+        const logDocId = `${safeDateId}_${window.currentClub}`; 
+        
+        // setDoc sẽ ghi đè nếu tồn tại
         const logData = { date: todayStr, timestampStr: displayDateTime, club: window.currentClub, timestamp: Date.now(), savedBy: window.currentUser.name, records: historyRecords };
         await setDoc(doc(db, COLL_HISTORY, logDocId), logData);
-        alert(`Đã lưu thành công ${count} môn sinh!`);
+        
+        // CẬP NHẬT GIAO DIỆN THÔNG BÁO
+        const summaryText = document.getElementById('attendance-summary');
+        if(summaryText) {
+            summaryText.innerText = `Đã lưu: Có mặt ${countPresent}/${countTotal}`;
+            summaryText.style.display = 'inline-block';
+        }
+
+        alert(`Đã lưu thành công!\nSĩ số: ${countPresent}/${countTotal}`);
+        
         const dp = document.getElementById('history-date-picker'); if(dp) dp.valueAsDate = new Date();
         const cs = document.getElementById('history-club-select'); if(cs) cs.value = window.currentClub;
-        window.openHistorySection();
+        // Không cần load lại trang để giữ thông báo
     } catch (e) { alert("Lỗi: " + e.message); }
 };
 
-window.deleteAllStudents = async function() {
-    if (!window.isAdmin()) { alert("Chỉ Huấn Luyện Viên trưởng mới được dùng tính năng này!"); return; }
-    if (!confirm(`CẢNH BÁO NGUY HIỂM!\n\nBạn có chắc chắn muốn xóa SẠCH toàn bộ danh sách trong CLB "${window.currentClub}" không?`)) return;
-    if (!confirm("Xác nhận lần cuối: XÓA HẾT DỮ LIỆU CLB NÀY?")) return;
-    const clubStudents = window.students.filter(s => s.club === window.currentClub);
-    const batch = writeBatch(db);
-    let count = 0;
-    clubStudents.forEach(student => { batch.delete(doc(db, COLL_STUDENTS, student.firebaseId)); count++; });
-    try { await batch.commit(); alert(`Đã xóa thành công ${count} hồ sơ!`); window.renderAttendanceTable(); } catch (e) { alert("Lỗi khi xóa: " + e.message); }
-}
-
-window.handleBulkUpload = function() {
-    const input = document.getElementById('bulk-upload-input');
-    if (!input.files || input.files.length === 0) { alert("Vui lòng chọn file CSV!"); return; }
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        const text = e.target.result;
-        const lines = text.split('\n');
-        const batch = writeBatch(db);
-        let count = 0;
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if(!line) continue;
-            const parts = line.split(',');
-            if(parts.length >= 2) { 
-                const name = parts[0].trim();
-                const phone = parts[1].trim();
-                const dob = parts[2] ? parts[2].trim() : "01/01/2000";
-                const belt = parts[3] ? parts[3].trim() : "Tự vệ";
-                const classRoom = parts[4] ? parts[4].trim() : "";
-                const exists = window.students.some(s => s.phone === phone && s.club === window.currentClub);
-                if(!exists) {
-                    const newRef = doc(collection(db, COLL_STUDENTS));
-                    batch.set(newRef, { id: Date.now() + i, club: window.currentClub, name: name, phone: phone, dob: dob, belt: belt, classRoom, img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", role: "student", isPresent: false, note: "", lastAttendanceDate: "" });
-                    count++;
-                }
-            }
-        }
-        try { await batch.commit(); alert(`Đã thêm thành công ${count} môn sinh!`); input.value = ""; window.switchTab('attendance'); } catch (err) { alert("Lỗi khi lưu: " + err.message); }
-    };
-    reader.readAsText(file, "UTF-8"); 
-}
-
-// Banner Logic
-let bannerIndex = 0; let bannerInterval;
-window.renderBannerSlider = function() { const wrapper = document.getElementById('banner-wrapper'); const dotsContainer = document.getElementById('slider-dots'); if(!wrapper) return; wrapper.innerHTML = ""; dotsContainer.innerHTML = ""; let displayBanners = window.banners; if (displayBanners.length === 0) { displayBanners = [{ img: "https://vovinam.vn/wp-content/uploads/2019/04/vovinam-banner.jpg", title: "TINH HOA VÕ THUẬT VIỆT NAM", desc: "Rèn luyện thân thể - Tu dưỡng tinh thần" }]; } displayBanners.forEach((b, idx) => { const slide = document.createElement('div'); slide.className = 'slide'; slide.innerHTML = `<img src="${b.img}" alt="Banner"><div class="banner-content"><h2>${b.title}</h2><p>${b.desc}</p></div>`; wrapper.appendChild(slide); const dot = document.createElement('div'); dot.className = `dot ${idx === 0 ? 'active' : ''}`; dot.onclick = () => window.goToSlide(idx); dotsContainer.appendChild(dot); }); bannerIndex = 0; window.updateSliderPosition(); window.startBannerAutoPlay(); };
-window.updateSliderPosition = function() { const wrapper = document.getElementById('banner-wrapper'); if(wrapper) { wrapper.style.transform = `translateX(-${bannerIndex * 100}%)`; document.querySelectorAll('.dot').forEach((d, i) => { d.classList.toggle('active', i === bannerIndex); }); } };
-window.moveSlide = function(n) { const total = document.getElementById('banner-wrapper').children.length; bannerIndex += n; if (bannerIndex >= total) bannerIndex = 0; if (bannerIndex < 0) bannerIndex = total - 1; window.updateSliderPosition(); window.startBannerAutoPlay(); };
-window.goToSlide = function(n) { bannerIndex = n; window.updateSliderPosition(); window.startBannerAutoPlay(); };
-window.startBannerAutoPlay = function() { clearInterval(bannerInterval); bannerInterval = setInterval(() => { window.moveSlide(1); }, 5000); };
-window.openBannerManager = function() { if (!window.isAdmin()) return; document.getElementById('modal-banner-manager').style.display = 'block'; const list = document.getElementById('banner-list-admin'); list.innerHTML = ""; window.banners.forEach(b => { const div = document.createElement('div'); div.className = 'banner-item-admin'; div.innerHTML = `<div style="display:flex;align-items:center;"><img src="${b.img}"><div><strong>${b.title}</strong></div></div><button class="btn-delete-banner" onclick="window.deleteBanner('${b.firebaseId}')">Xóa</button>`; list.appendChild(div); }); };
-window.closeBannerManager = function() { document.getElementById('modal-banner-manager').style.display = 'none'; };
-window.addBanner = async function() { const title = document.getElementById('new-banner-title').value.trim(); const desc = document.getElementById('new-banner-desc').value.trim(); const fileInput = document.getElementById('new-banner-img'); if(!title || !fileInput.files[0]) { alert("Cần nhập tiêu đề và chọn ảnh!"); return; } const file = fileInput.files[0]; if(file.size > 5 * 1024 * 1024) { alert("Ảnh quá lớn (<5MB)!"); return; } const reader = new FileReader(); reader.onload = async function(e) { const imgBase64 = e.target.result; try { await addDoc(collection(db, COLL_BANNERS), { title, desc, img: imgBase64, timestamp: Date.now() }); alert("Đã thêm banner!"); window.openBannerManager(); } catch(err) { alert("Lỗi: " + err.message); } }; reader.readAsDataURL(file); };
-window.deleteBanner = async function(id) { if(!confirm("Xóa banner này?")) return; try { await deleteDoc(doc(db, COLL_BANNERS, id)); window.openBannerManager(); } catch(e) { alert("Lỗi: " + e.message); } };
+// ... (KEEP ALL OTHER FUNCTIONS) ...
+window.exportToExcel = function() { if(!window.canManage()) return; if(window.isMonitor() && !window.isAdmin() && !window.isAssistant()) { alert("Lớp trưởng không có quyền xuất file!"); return; } const beltFilter = document.getElementById('filter-belt-select').value; const classFilter = document.getElementById('filter-class-select').value; let list = window.students.filter(s => s.club === window.currentClub); if (window.currentClub === 'Nội Trú' && classFilter !== "ALL") { list = list.filter(s => s.classRoom === classFilter); } if (beltFilter !== "ALL") { list = list.filter(s => { if (!s.belt) return false; if (beltFilter === "Lam đai") return s.belt.includes("Lam") || s.belt.includes("Chuẩn"); if (beltFilter === "Hoàng đai") return s.belt.includes("Hoàng"); return s.belt === beltFilter; }); } if (window.isSortAsc) { list.sort((a, b) => getFirstName(a.name).localeCompare(getFirstName(b.name))); } if (list.length === 0) { alert("Danh sách trống!"); return; } let csvContent = "\uFEFF"; csvContent += "STT,Họ và Tên,Lớp,Số điện thoại,Ngày sinh,Cấp đai,Trạng thái hôm nay,Ghi chú\n"; list.forEach((s, index) => { const status = s.isPresent ? "Có mặt" : "Vắng"; const row = [index + 1, `"${s.name}"`, `"${s.classRoom || ''}"`, `'${s.phone}`, `"${s.dob}"`, `"${s.belt || ''}"`, `"${status}"`, `"${s.note || ''}"`]; csvContent += row.join(",") + "\n"; }); const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); const url = URL.createObjectURL(blob); link.setAttribute("href", url); const dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); link.setAttribute("download", `DS_${window.currentClub}_${dateStr}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+window.deleteAllStudents = async function() { if (!window.isAdmin()) { alert("Chỉ Huấn Luyện Viên trưởng mới được dùng tính năng này!"); return; } if (!confirm(`CẢNH BÁO NGUY HIỂM!\n\nBạn có chắc chắn muốn xóa SẠCH toàn bộ danh sách trong CLB "${window.currentClub}" không?`)) return; if (!confirm("Xác nhận lần cuối: XÓA HẾT DỮ LIỆU CLB NÀY?")) return; const clubStudents = window.students.filter(s => s.club === window.currentClub); const batch = writeBatch(db); let count = 0; clubStudents.forEach(student => { batch.delete(doc(db, COLL_STUDENTS, student.firebaseId)); count++; }); try { await batch.commit(); alert(`Đã xóa thành công ${count} hồ sơ!`); window.renderAttendanceTable(); } catch (e) { alert("Lỗi khi xóa: " + e.message); } }
+window.handleBulkUpload = function() { const input = document.getElementById('bulk-upload-input'); if (!input.files || input.files.length === 0) { alert("Vui lòng chọn file CSV!"); return; } const file = input.files[0]; const reader = new FileReader(); reader.onload = async function(e) { const text = e.target.result; const lines = text.split('\n'); const batch = writeBatch(db); let count = 0; for (let i = 0; i < lines.length; i++) { const line = lines[i].trim(); if(!line) continue; const parts = line.split(','); if(parts.length >= 2) { const name = parts[0].trim(); const phone = parts[1].trim(); const dob = parts[2] ? parts[2].trim() : "01/01/2000"; const belt = parts[3] ? parts[3].trim() : "Tự vệ"; const classRoom = parts[4] ? parts[4].trim() : ""; const exists = window.students.some(s => s.phone === phone && s.club === window.currentClub); if(!exists) { const newRef = doc(collection(db, COLL_STUDENTS)); batch.set(newRef, { id: Date.now() + i, club: window.currentClub, name: name, phone: phone, dob: dob, belt: belt, classRoom, img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", role: "student", isPresent: false, note: "", lastAttendanceDate: "" }); count++; } } } try { await batch.commit(); alert(`Đã thêm thành công ${count} môn sinh!`); input.value = ""; window.switchTab('attendance'); } catch (err) { alert("Lỗi khi lưu: " + err.message); } }; reader.readAsText(file, "UTF-8"); }
+let bannerIndex = 0; let bannerInterval; window.renderBannerSlider = function() { const wrapper = document.getElementById('banner-wrapper'); const dotsContainer = document.getElementById('slider-dots'); if(!wrapper) return; wrapper.innerHTML = ""; dotsContainer.innerHTML = ""; let displayBanners = window.banners; if (displayBanners.length === 0) { displayBanners = [{ img: "https://vovinam.vn/wp-content/uploads/2019/04/vovinam-banner.jpg", title: "TINH HOA VÕ THUẬT VIỆT NAM", desc: "Rèn luyện thân thể - Tu dưỡng tinh thần" }]; } displayBanners.forEach((b, idx) => { const slide = document.createElement('div'); slide.className = 'slide'; slide.innerHTML = `<img src="${b.img}" alt="Banner"><div class="banner-content"><h2>${b.title}</h2><p>${b.desc}</p></div>`; wrapper.appendChild(slide); const dot = document.createElement('div'); dot.className = `dot ${idx === 0 ? 'active' : ''}`; dot.onclick = () => window.goToSlide(idx); dotsContainer.appendChild(dot); }); bannerIndex = 0; window.updateSliderPosition(); window.startBannerAutoPlay(); }; window.updateSliderPosition = function() { const wrapper = document.getElementById('banner-wrapper'); if(wrapper) { wrapper.style.transform = `translateX(-${bannerIndex * 100}%)`; document.querySelectorAll('.dot').forEach((d, i) => { d.classList.toggle('active', i === bannerIndex); }); } }; window.moveSlide = function(n) { const total = document.getElementById('banner-wrapper').children.length; bannerIndex += n; if (bannerIndex >= total) bannerIndex = 0; if (bannerIndex < 0) bannerIndex = total - 1; window.updateSliderPosition(); window.startBannerAutoPlay(); }; window.goToSlide = function(n) { bannerIndex = n; window.updateSliderPosition(); window.startBannerAutoPlay(); }; window.startBannerAutoPlay = function() { clearInterval(bannerInterval); bannerInterval = setInterval(() => { window.moveSlide(1); }, 5000); }; window.openBannerManager = function() { if (!window.isAdmin()) return; document.getElementById('modal-banner-manager').style.display = 'block'; const list = document.getElementById('banner-list-admin'); list.innerHTML = ""; window.banners.forEach(b => { const div = document.createElement('div'); div.className = 'banner-item-admin'; div.innerHTML = `<div style="display:flex;align-items:center;"><img src="${b.img}"><div><strong>${b.title}</strong></div></div><button class="btn-delete-banner" onclick="window.deleteBanner('${b.firebaseId}')">Xóa</button>`; list.appendChild(div); }); }; window.closeBannerManager = function() { document.getElementById('modal-banner-manager').style.display = 'none'; }; window.addBanner = async function() { const title = document.getElementById('new-banner-title').value.trim(); const desc = document.getElementById('new-banner-desc').value.trim(); const fileInput = document.getElementById('new-banner-img'); if(!title || !fileInput.files[0]) { alert("Cần nhập tiêu đề và chọn ảnh!"); return; } const file = fileInput.files[0]; if(file.size > 5 * 1024 * 1024) { alert("Ảnh quá lớn (<5MB)!"); return; } const reader = new FileReader(); reader.onload = async function(e) { const imgBase64 = e.target.result; try { await addDoc(collection(db, COLL_BANNERS), { title, desc, img: imgBase64, timestamp: Date.now() }); alert("Đã thêm banner!"); window.openBannerManager(); } catch(err) { alert("Lỗi: " + err.message); } }; reader.readAsDataURL(file); }; window.deleteBanner = async function(id) { if(!confirm("Xóa banner này?")) return; try { await deleteDoc(doc(db, COLL_BANNERS, id)); window.openBannerManager(); } catch(e) { alert("Lỗi: " + e.message); } };
 
 window.deleteStudent = async function(firebaseId, studentName) { if(!window.isAdmin()) { alert("Chỉ HLV trưởng mới được xóa!"); return; } if(confirm(`Xóa ${studentName}?`)) { try { await deleteDoc(doc(db, COLL_STUDENTS, firebaseId)); alert("Đã xóa!"); } catch (e) { alert("Lỗi: " + e.message); } } };
-
-// CẬP NHẬT: SĐT KHÔNG BẮT BUỘC KHI HLV THÊM
-window.handleAddStudent = async function(e) { 
-    e.preventDefault(); 
-    const name = document.getElementById('student-name').value.trim(); 
-    const phone = document.getElementById('student-phone').value.trim(); // Có thể rỗng
-    const dob = document.getElementById('student-dob').value; 
-    const belt = document.getElementById('student-belt').value; 
-    const classRoom = document.getElementById('student-class').value; 
-    const input = document.getElementById('student-img'); 
-    
-    // Chỉ check trùng SĐT nếu có nhập
-    if (phone && window.students.some(s => s.phone === phone && s.club === window.currentClub)) {
-        return alert("Số điện thoại này đã tồn tại trong CLB này!");
-    }
-    
-    let img = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; 
-    let role = "student"; 
-    
-    // Nếu có SĐT thì thử tìm ảnh cũ
-    if (phone) {
-        const exist = window.students.find(s => s.phone === phone);
-        if(exist) { img = exist.img; role = exist.role || "student"; }
-    }
-
-    if(input.files[0]) { 
-        if(input.files[0].size > 5 * 1024 * 1024) return alert("Ảnh quá lớn (<5MB)"); 
-        img = await readFileAsBase64(input.files[0]); 
-    } 
-    
-    await addDoc(collection(db, COLL_STUDENTS), { 
-        id: Date.now(), 
-        club: window.currentClub, 
-        name, phone, dob, belt, classRoom, img, role, 
-        isPresent: false, note: "", lastAttendanceDate: "" 
-    }); 
-    
-    alert("Đã thêm!"); 
-    document.getElementById('add-student-form').reset(); 
-    window.switchTab('attendance'); 
-};
-
-window.openEditModal = function(firebaseId) { const student = window.students.find(s => s.firebaseId === firebaseId); if (!student) return; document.getElementById('edit-id').value = firebaseId; document.getElementById('edit-name').value = student.name; document.getElementById('edit-phone').value = student.phone; document.getElementById('edit-dob').value = student.dob; document.getElementById('edit-belt').value = student.belt || "Tự vệ"; document.getElementById('edit-class').value = student.classRoom || ""; document.getElementById('edit-img-preview').src = student.img; document.getElementById('edit-img-upload').value = ""; const roleDiv = document.getElementById('div-edit-role'); const roleSelect = document.getElementById('edit-role'); 
-    if (window.isAdmin()) { roleDiv.style.display = 'block'; roleSelect.value = student.role || 'student'; } else { roleDiv.style.display = 'none'; } 
-    document.getElementById('modal-edit-student').style.display = 'block'; };
+window.handleAddStudent = async function(e) { e.preventDefault(); const name = document.getElementById('student-name').value; const phone = document.getElementById('student-phone').value; const dob = document.getElementById('student-dob').value; const belt = document.getElementById('student-belt').value; const classRoom = document.getElementById('student-class').value; const input = document.getElementById('student-img'); if (phone && window.students.some(s => s.phone === phone && s.club === window.currentClub)) { return alert("Số điện thoại này đã tồn tại trong CLB này!"); } let img = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; let role = "student"; if (phone) { const exist = window.students.find(s => s.phone === phone); if(exist) { img = exist.img; role = exist.role || "student"; } } if(input.files[0]) { if(input.files[0].size > 5 * 1024 * 1024) return alert("Ảnh quá lớn (<5MB)"); img = await readFileAsBase64(input.files[0]); } await addDoc(collection(db, COLL_STUDENTS), { id: Date.now(), club: window.currentClub, name, phone, dob, belt, classRoom, img, role, isPresent: false, note: "", lastAttendanceDate: "" }); alert("Đã thêm!"); document.getElementById('add-student-form').reset(); window.switchTab('attendance'); };
+window.openEditModal = function(firebaseId) { const student = window.students.find(s => s.firebaseId === firebaseId); if (!student) return; document.getElementById('edit-id').value = firebaseId; document.getElementById('edit-name').value = student.name; document.getElementById('edit-phone').value = student.phone; document.getElementById('edit-dob').value = student.dob; document.getElementById('edit-belt').value = student.belt || "Tự vệ"; document.getElementById('edit-class').value = student.classRoom || ""; document.getElementById('edit-img-preview').src = student.img; document.getElementById('edit-img-upload').value = ""; const roleDiv = document.getElementById('div-edit-role'); const roleSelect = document.getElementById('edit-role'); if (window.isAdmin()) { roleDiv.style.display = 'block'; roleSelect.value = student.role || 'student'; } else { roleDiv.style.display = 'none'; } document.getElementById('modal-edit-student').style.display = 'block'; };
 window.closeEditModal = function() { document.getElementById('modal-edit-student').style.display = 'none'; };
 window.previewEditAvatar = function(input) { if (input.files && input.files[0]) { if (input.files[0].size > 5 * 1024 * 1024) { alert("Ảnh quá lớn (<5MB)!"); input.value = ""; return; } const reader = new FileReader(); reader.onload = function(e) { document.getElementById('edit-img-preview').src = e.target.result; }; reader.readAsDataURL(input.files[0]); } };
 window.saveStudentEdits = async function(e) { e.preventDefault(); if(!window.canManage()) return; const id = document.getElementById('edit-id').value; const name = document.getElementById('edit-name').value; const phone = document.getElementById('edit-phone').value; const dob = document.getElementById('edit-dob').value; const belt = document.getElementById('edit-belt').value; const classRoom = document.getElementById('edit-class').value; let imgUrl = document.getElementById('edit-img-preview').src; const imgInput = document.getElementById('edit-img-upload'); let newRole = 'student'; const currentStudent = window.students.find(s => s.firebaseId === id); if(currentStudent) newRole = currentStudent.role || 'student'; if (window.isAdmin()) newRole = document.getElementById('edit-role').value; if (imgInput.files && imgInput.files[0]) { if (imgInput.files[0].size > 5 * 1024 * 1024) { alert("Ảnh quá lớn (<5MB)!"); return; } imgUrl = await readFileAsBase64(imgInput.files[0]); } try { const relatedRecords = window.students.filter(s => s.phone === phone); const batch = writeBatch(db); if(relatedRecords.length > 0) { relatedRecords.forEach(rec => { const docRef = doc(db, COLL_STUDENTS, rec.firebaseId); if (rec.firebaseId === id) { batch.update(docRef, { name, dob, belt, classRoom, img: imgUrl, role: newRole }); } else { batch.update(docRef, { name, dob, belt, classRoom, img: imgUrl }); } }); await batch.commit(); } else { const docRef = doc(db, COLL_STUDENTS, id); await updateDoc(docRef, { name, phone, dob, belt, classRoom, img: imgUrl, role: newRole }); } alert("Đã cập nhật!"); window.closeEditModal(); } catch (error) { alert("Lỗi: " + error.message); } };
 window.openHistorySection = function() { window.showSection('history-section'); const title = document.getElementById('history-title'); const filters = document.getElementById('history-filters'); const list = document.getElementById('history-list'); list.innerHTML = ""; if (window.isAdmin() || window.isAssistant() || window.isMonitor()) { title.innerText = "QUẢN TRỊ ĐIỂM DANH"; filters.style.display = "flex"; const dp = document.getElementById('history-date-picker'); if(!dp.value) dp.valueAsDate = new Date(); window.loadHistoryData(); } else { title.innerText = "LỊCH SỬ ĐIỂM DANH CÁ NHÂN"; filters.style.display = "none"; window.loadHistoryData(); } };
-window.loadHistoryData = async function() { const list = document.getElementById('history-list'); const loading = document.getElementById('history-loading'); const emptyMsg = document.getElementById('history-empty'); list.innerHTML = ""; loading.style.display = "block"; emptyMsg.style.display = "none"; try { let historyRecords = []; if (window.isAdmin() || window.isAssistant() || window.isMonitor()) { const dateInput = document.getElementById('history-date-picker').value; if(!dateInput) { loading.style.display="none"; return; } const dateStr = dateInput.split('-').reverse().join('/'); const clubName = document.getElementById('history-club-select').value; if (window.isAssistant() && !window.currentUser.clubs.includes(clubName)) { loading.style.display = "none"; alert("Bạn không có quyền xem CLB này!"); return; } if (window.isMonitor() && clubName !== 'Nội Trú') { loading.style.display = "none"; alert("Lớp trưởng chỉ xem được CLB Nội Trú!"); return; } const q = query(collection(db, COLL_HISTORY), where("date", "==", dateStr), where("club", "==", clubName)); const snapshot = await getDocs(q); if (!snapshot.empty) { 
-    snapshot.forEach(docLog => {
-        const logData = docLog.data(); const displayDate = logData.timestampStr || logData.date; 
-        logData.records.forEach(r => { historyRecords.push({...r, date: displayDate}); });
-    });
-} } else { const snapshot = await getDocs(collection(db, COLL_HISTORY)); snapshot.forEach(doc => { const logData = doc.data(); const myRecord = logData.records.find(r => r.phone === window.currentUser.phone); if (myRecord) { const displayDate = logData.timestampStr || logData.date; historyRecords.push({ date: displayDate, name: logData.club, status: myRecord.status, note: myRecord.note }); } }); historyRecords.sort((a, b) => { return b.date.localeCompare(a.date); }); } loading.style.display = "none"; if(historyRecords.length === 0) { emptyMsg.style.display = "block"; return; } historyRecords.forEach(rec => { const tr = document.createElement('tr'); const statusClass = rec.status === "Có mặt" ? "status-present" : "status-absent"; tr.innerHTML = `<td>${rec.date}</td><td><strong>${rec.name}</strong></td><td><span class="status-badge ${statusClass}">${rec.status}</span></td><td>${rec.note || ''}</td>`; list.appendChild(tr); }); } catch(e) { loading.style.display = "none"; alert("Lỗi: " + e.message); } };
+window.loadHistoryData = async function() { const list = document.getElementById('history-list'); const loading = document.getElementById('history-loading'); const emptyMsg = document.getElementById('history-empty'); list.innerHTML = ""; loading.style.display = "block"; emptyMsg.style.display = "none"; try { let historyRecords = []; if (window.isAdmin() || window.isAssistant() || window.isMonitor()) { const dateInput = document.getElementById('history-date-picker').value; if(!dateInput) { loading.style.display="none"; return; } const dateStr = dateInput.split('-').reverse().join('/'); const clubName = document.getElementById('history-club-select').value; if (window.isAssistant() && !window.currentUser.clubs.includes(clubName)) { loading.style.display = "none"; alert("Bạn không có quyền xem CLB này!"); return; } if (window.isMonitor() && clubName !== 'Nội Trú') { loading.style.display = "none"; alert("Lớp trưởng chỉ xem được CLB Nội Trú!"); return; } const q = query(collection(db, COLL_HISTORY), where("date", "==", dateStr), where("club", "==", clubName)); const snapshot = await getDocs(q); if (!snapshot.empty) { snapshot.forEach(docLog => { const logData = docLog.data(); const displayDate = logData.timestampStr || logData.date; logData.records.forEach(r => { historyRecords.push({...r, date: displayDate}); }); }); } } else { const snapshot = await getDocs(collection(db, COLL_HISTORY)); snapshot.forEach(doc => { const logData = doc.data(); const myRecord = logData.records.find(r => r.phone === window.currentUser.phone); if (myRecord) { const displayDate = logData.timestampStr || logData.date; historyRecords.push({ date: displayDate, name: logData.club, status: myRecord.status, note: myRecord.note }); } }); historyRecords.sort((a, b) => { return b.date.localeCompare(a.date); }); } loading.style.display = "none"; if(historyRecords.length === 0) { emptyMsg.style.display = "block"; return; } historyRecords.forEach(rec => { const tr = document.createElement('tr'); const statusClass = rec.status === "Có mặt" ? "status-present" : "status-absent"; tr.innerHTML = `<td>${rec.date}</td><td><strong>${rec.name}</strong></td><td><span class="status-badge ${statusClass}">${rec.status}</span></td><td>${rec.note || ''}</td>`; list.appendChild(tr); }); } catch(e) { loading.style.display = "none"; alert("Lỗi: " + e.message); } };
 window.formatDoc = function(cmd) { document.execCommand(cmd, false, null); };
 window.formatComment = function(cmd) { document.execCommand(cmd, false, null); document.getElementById('comment-input-rich').focus(); };
 const readFileAsBase64 = (file) => { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); reader.readAsDataURL(file); }); };
-window.showProfile = function() { if (!window.currentUser) return; window.showSection('profile'); document.getElementById('profile-name').value = window.currentUser.name; document.getElementById('profile-phone').value = window.currentUser.phone; document.getElementById('profile-dob').value = window.currentUser.dob; document.getElementById('profile-belt').value = window.currentUser.belt || "Tự vệ"; document.getElementById('profile-club').value = (window.currentUser.clubs || []).join(", "); 
-    document.getElementById('profile-class').value = window.currentUser.classRoom ? `Lớp ${window.currentUser.classRoom}` : "(Không có)";
-    document.getElementById('profile-img-preview').src = window.currentUser.img || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; window.enableEditProfile(false); };
+window.showProfile = function() { if (!window.currentUser) return; window.showSection('profile'); document.getElementById('profile-name').value = window.currentUser.name; document.getElementById('profile-phone').value = window.currentUser.phone; document.getElementById('profile-dob').value = window.currentUser.dob; document.getElementById('profile-belt').value = window.currentUser.belt || "Tự vệ"; document.getElementById('profile-club').value = (window.currentUser.clubs || []).join(", "); document.getElementById('profile-class').value = window.currentUser.classRoom ? `Lớp ${window.currentUser.classRoom}` : "(Không có)"; document.getElementById('profile-img-preview').src = window.currentUser.img || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; window.enableEditProfile(false); };
 window.enableEditProfile = function(enable = true) { document.getElementById('profile-name').disabled = !enable; document.getElementById('profile-dob').disabled = !enable; document.getElementById('btn-change-avatar').style.display = enable ? 'inline-flex' : 'none'; document.getElementById('btn-edit-profile').style.display = enable ? 'none' : 'block'; document.getElementById('btn-save-profile').style.display = enable ? 'block' : 'none'; };
 window.previewProfileAvatar = function(input) { if (input.files && input.files[0]) { if (input.files[0].size > 5 * 1024 * 1024) { alert("Ảnh quá lớn (<5MB)!"); input.value=""; return; } const reader = new FileReader(); reader.onload = function(e) { document.getElementById('profile-img-preview').src = e.target.result; }; reader.readAsDataURL(input.files[0]); } };
 window.saveProfile = async function() { if (!window.currentUser || !confirm("Lưu thay đổi?")) return; const newName = document.getElementById('profile-name').value; const newDob = document.getElementById('profile-dob').value; const newImg = document.getElementById('profile-img-preview').src; const myRecords = window.students.filter(s => s.phone === window.currentUser.phone); const batch = writeBatch(db); myRecords.forEach(rec => { const docRef = doc(db, COLL_STUDENTS, rec.firebaseId); batch.update(docRef, { name: newName, dob: newDob, img: newImg }); }); try { await batch.commit(); window.currentUser.name = newName; window.currentUser.dob = newDob; window.currentUser.img = newImg; localStorage.setItem('vovinamCurrentUser', JSON.stringify(window.currentUser)); alert("Đã cập nhật!"); window.enableEditProfile(false); window.checkLoginStatus(); } catch(e) { alert("Lỗi: " + e.message); } };
 window.renderNews = function() { const list = document.getElementById('news-feed'); if(!list) return; list.innerHTML = ""; const filterArea = document.getElementById('news-filter-area'); let allowedClubs = []; if (window.isAdmin()) { filterArea.style.display = 'flex'; const checkboxes = filterArea.querySelectorAll('input[type="checkbox"]:checked'); checkboxes.forEach(cb => allowedClubs.push(cb.value)); } else { filterArea.style.display = 'none'; allowedClubs.push("Global"); if (window.currentUser && window.currentUser.clubs) { allowedClubs = allowedClubs.concat(window.currentUser.clubs); } } const btnCreate = document.getElementById('btn-create-post'); if(btnCreate) btnCreate.style.display = (window.isAdmin() || window.isAssistant()) ? 'block' : 'none'; const filteredPosts = window.posts.filter(post => { const postClub = post.club || "Global"; return allowedClubs.includes(postClub); }); if (filteredPosts.length === 0) { list.innerHTML = "<p style='text-align:center; color:#777;'>Không có tin tức nào.</p>"; return; } filteredPosts.forEach(post => { const div = document.createElement('div'); div.className = 'news-item'; let adminActions = ""; if (window.isAdmin()) { adminActions = `<div class="admin-actions"><button class="btn-edit-post" onclick="window.editPost('${post.firebaseId}')"><i class="fas fa-edit"></i> Sửa</button><button class="btn-delete-post" onclick="window.deletePost('${post.firebaseId}')"><i class="fas fa-trash-alt"></i> Xóa</button></div>`; } let clubTag = `<span style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.8rem; color:#555;">${post.club || 'Tin chung'}</span>`; div.innerHTML = `<div style="display:flex; justify-content:space-between;"><h3>${post.title}</h3>${clubTag}</div><small style="color:#666;">${post.date} - Đăng bởi: ${post.authorName || 'BQT'}</small><div class="news-preview">${post.content}</div><div class="read-more-btn" onclick="window.viewPost('${post.firebaseId}')">Xem & Bình luận >></div>${adminActions}`; list.appendChild(div); }); };
-window.togglePostForm = function(isEditMode = false) { const form = document.getElementById('post-creator'); const clubSelect = document.getElementById('post-target-club'); if (form.style.display === 'none') { form.style.display = 'block'; if (!isEditMode) { document.getElementById('post-title').value = ""; document.getElementById('post-content').innerHTML = ""; window.editingFirebaseId = null; form.querySelector('.btn-submit').innerText = "Đăng bài"; if (window.isAdmin()) { clubSelect.disabled = false; clubSelect.value = "Global"; } else if (window.isAssistant()) { 
-    // FIX DROPDOWN ĐĂNG BÀI: Chỉ hiện CLB mình quản lý
-    const myClubs = window.students.filter(s => s.phone === window.currentUser.phone && s.role === 'assistant').map(s => s.club);
-    if(myClubs.length > 0) {
-        clubSelect.value = myClubs[0]; 
-        for(let i=0; i<clubSelect.options.length; i++) {
-            if(!myClubs.includes(clubSelect.options[i].value) && clubSelect.options[i].value !== 'Global') {
-                clubSelect.options[i].disabled = true;
-            }
-        }
-    } else { clubSelect.disabled = true; } 
-} } } else if (!isEditMode) { form.style.display = 'none'; } };
+window.togglePostForm = function(isEditMode = false) { const form = document.getElementById('post-creator'); const clubSelect = document.getElementById('post-target-club'); if (form.style.display === 'none') { form.style.display = 'block'; if (!isEditMode) { document.getElementById('post-title').value = ""; document.getElementById('post-content').innerHTML = ""; window.editingFirebaseId = null; form.querySelector('.btn-submit').innerText = "Đăng bài"; if (window.isAdmin()) { clubSelect.disabled = false; clubSelect.value = "Global"; } else if (window.isAssistant()) { const myClubs = window.students.filter(s => s.phone === window.currentUser.phone && s.role === 'assistant').map(s => s.club); if(myClubs.length > 0) { clubSelect.value = myClubs[0]; for(let i=0; i<clubSelect.options.length; i++) { if(!myClubs.includes(clubSelect.options[i].value) && clubSelect.options[i].value !== 'Global') { clubSelect.options[i].disabled = true; } } } else { clubSelect.disabled = true; } } } } else if (!isEditMode) { form.style.display = 'none'; } };
 window.handleMediaUpload = function(input) { const file = input.files[0]; if (!file || file.size > 5 * 1024 * 1024) { alert("Ảnh quá lớn (<5MB)!"); return; } const reader = new FileReader(); reader.onload = function(e) { const mediaHTML = file.type.startsWith('video') ? `<br><video controls src="${e.target.result}"></video><br>` : `<br><img src="${e.target.result}"><br>`; document.getElementById('post-content').innerHTML += mediaHTML; input.value = ""; }; reader.readAsDataURL(file); };
 window.publishPost = async function() { const title = document.getElementById('post-title').value; const content = document.getElementById('post-content').innerHTML; const club = document.getElementById('post-target-club').value; if(!title) { alert("Thiếu tiêu đề!"); return; } try { if (window.editingFirebaseId) { await updateDoc(doc(db, COLL_POSTS, window.editingFirebaseId), { title, content, club }); alert("Đã cập nhật!"); window.editingFirebaseId = null; } else { await addDoc(collection(db, COLL_POSTS), { id: Date.now(), title, content, club, authorName: window.currentUser.name, date: new Date().toLocaleDateString('vi-VN'), comments: [] }); alert("Đã đăng bài!"); } document.getElementById('post-creator').style.display = 'none'; } catch (e) { alert("Lỗi: " + e.message); } };
 window.deletePost = async function(firebaseId) { if (confirm("Xóa bài viết?")) { await deleteDoc(doc(db, COLL_POSTS, firebaseId)); alert("Đã xóa!"); } };
@@ -569,4 +441,4 @@ setTimeout(() => {
 }, 1000);
 
 window.checkLoginStatus();
-console.log("✅ SYSTEM UPDATE 21.0: OPTIONAL PHONE FOR ADMIN ADD");
+console.log("✅ SYSTEM UPDATE 24.0: OVERWRITE SAVE & COUNT DISPLAY");
